@@ -6,9 +6,9 @@ source = {
 }
 
 description = {
-  summary = "Very fast json module based on RapidJSON",
+  summary = "Very fast json module based on RapidJSON.",
   detailed = [[
-        A very fast json module for luajit and lua 5.1/5.2.
+        A very fast json module for LuaJIT and Lua 5.1/5.2.
 
         Based on the very fast json library RapidJSON.
 
@@ -29,8 +29,7 @@ build = {
   type = 'cmake',
   variables = {
     CMAKE_INSTALL_PREFIX = "$(PREFIX)",
-    LUA_LIBDIR = "$(LUA_LIBDIR)",
-    LUA_INCDIR = "$(LUA_INCDIR)",
+    LUA_INCLUDE_DIR = "$(LUA_INCDIR)",
     BUILD_SHARED_LIBS="ON",
   }
 }
