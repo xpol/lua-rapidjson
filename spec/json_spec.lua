@@ -60,6 +60,9 @@ describe('Json module', function()
   end)
 
   it('should handle nested objects', function()
-
+    local a = json.load([[ {"a":[{"b":[1, 2, 3], "c":{}}]} ]])
+    assert.are.same({a={{b={1,2,3}, c={}}}}, a)
   end)
+
+  --TODO: test more bad formated json strings...
 end)
