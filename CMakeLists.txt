@@ -24,8 +24,9 @@ else(UNIX)
 endif(UNIX)
 
 
-
-add_definitions(-O2 -DNDEBUG)
+if (RELEASE)
+	add_definitions(-O2 -DNDEBUG)
+endif()
 
 if (NOT LUA_INCLUDE_DIR)
     message('Using system lua...')
