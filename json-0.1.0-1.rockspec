@@ -31,5 +31,13 @@ build = {
     CMAKE_INSTALL_PREFIX = "$(PREFIX)",
     LUA_INCLUDE_DIR = "$(LUA_INCDIR)",
     BUILD_SHARED_LIBS="ON",
+  },
+  -- Override default build options
+  platforms = {
+    windows = {
+      variables = {
+        LUA_LIBRARIES = "$(LUA_LIBDIR)$(LUALIB)", -- windows DLL needs link with importlib.
+      }
+    }
   }
 }

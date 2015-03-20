@@ -12,6 +12,8 @@ if(UNIX)
         set(PLAT "linux")
         set(LINK_FLAGS "-shared")
     endif(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fPIC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -fPIC")
 else(UNIX)
     if(WIN32)
         set(PLAT "win32")
@@ -21,15 +23,12 @@ else(UNIX)
     endif(WIN32)
 endif(UNIX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fPIC -O2")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -fPIC -O2")
 
 
-if (RELEASE)
-  add_definitions(-O2 -DNDEBUG)
-endif(RELEASE)
+add_definitions(-O2 -DNDEBUG)
 
 if (NOT LUA_INCLUDE_DIR)
+    message('Using system lua...')
     find_package(Lua REQUIRED)
 endif()
 
@@ -37,9 +36,18 @@ include_directories(${LUA_INCLUDE_DIR} rapidjson/include)
 
 add_library (json MODULE src/json.cpp)
 
+if (LUA_LIBRARIES)
+    message("Using LUALIB:${LUA_LIBRARIES}")
+    target_link_libraries(json ${LUA_LIBRARIES})
+endif()
+
+if (LINK_FLAGS)
+    set_target_properties(json PROPERTIES
+        LINK_FLAGS ${LINK_FLAGS}
+    )
+endif()
 
 set_target_properties(json PROPERTIES
-    LINK_FLAGS ${LINK_FLAGS}
     OUTPUT_NAME "json"
     PREFIX ""
 )
