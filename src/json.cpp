@@ -7,8 +7,11 @@ extern "C" {
 #include "rapidjson/reader.h"
 #include <vector>
 
+static int json_null(lua_State* L);
+
 struct Ctx {
 	virtual void submit(lua_State* L) = 0;
+	virtual ~Ctx() {}
 };
 
 struct TopCtx : public Ctx {
@@ -44,7 +47,7 @@ struct ToLuaHandler {
 		return !stack_.empty();
 	}
 	bool Null() {
-		lua_pushboolean(L, false);
+		json_null(L);
 		current_->submit(L);
 		return status();
 	}
@@ -153,9 +156,21 @@ static int json_dump(lua_State* L)
     return 0;
 }
 
+static int null = LUA_NOREF;
+
+/**
+ * Returns json.null.
+ */
+static int json_null(lua_State* L)
+{
+	lua_rawgeti(L, LUA_REGISTRYINDEX, null);
+	return 1;
+}
+
 static const luaL_Reg methods[] = {
   {"load", json_load},
   {"dump", json_dump},
+  {"null", json_null},
   {NULL, NULL}
 };
 
@@ -173,6 +188,9 @@ LUALIB_API int luaopen_json(lua_State* L)
 #else
       luaL_register(L, NULL, methods);
 #endif
+
+	lua_getfield(L, -1, "null");
+	null = luaL_ref(L, LUA_REGISTRYINDEX);
 
     return 1;
 }

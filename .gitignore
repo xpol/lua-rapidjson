@@ -1,1 +1,9 @@
 build/
+build.luarocks/
+CMakeCache.txt
+Makefile
+install_manifest.txt
+CMakeFiles
+cmake_install.cmake
+json.so
+json.dll
