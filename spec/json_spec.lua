@@ -1,21 +1,87 @@
 --luacheck: ignore describe it
-describe('Json module', function()
+describe('json.load()', function()
   local json = require('json')
   describe('should return nil', function()
     it('when load string with length < 2', function()
-      assert.are.equal(nil, json.load(''))
       assert.are.equal(nil, json.load('1'))
     end)
 
     it('when load numbers', function()
       -- number can convert to string so we can't rise arg error.
+      assert.are.equal(nil, (json.load(1)))
       assert.are.equal(nil, json.load(1000))
       assert.are.equal(nil, json.load(100.0))
     end)
 
     it('when parse invalid json data', function()
-      local a = json.load('[[{"a":b,c}]]')
-      assert.are.same(nil, a)
+      local r, m
+
+      r, m = json.load('')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "The document is empty.", 1, true))
+
+      r, m = json.load('{}10')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "The document root must not follow by other values.", 1, true))
+
+      r, m = json.load('{"a":b}')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Invalid value.", 1, true))
+
+      r, m = json.load('{12}')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Missing a name for object member.", 1, true))
+
+      r, m = json.load('{"a",}')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Missing a colon after a name of object member.", 1, true))
+
+      r, m = json.load('{"a":[] "b":[]}')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Missing a comma or '}' after an object member.", 1, true))
+
+      r, m = json.load('[{}{}]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Missing a comma or ']' after an array element.", 1, true))
+
+      r, m = json.load('["\\uke"]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Incorrect hex digit after \\u escape in string.", 1, true))
+
+      r, m = json.load('["\\p"]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Invalid escape character in string.", 1, true))
+
+      r, m = json.load('["a]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Missing a closing quotation mark in string.", 1, true))
+
+      r, m = json.load('[999999999999999999e9999999999999999999]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Number too big to be stored in double.", 1, true))
+
+      r, m = json.load('[0.,]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Miss fraction part in number.", 1, true))
+
+      r, m = json.load('[1.2e,]')
+      assert.are.equal(nil, r)
+      assert.are.equal('string', type(m))
+      assert.are_not.equal(nil, string.find(m, "Miss exponent in number.", 1, true))
+      --"The surrogate pair in string is invalid. ()", ''
+      --"Invalid encoding in string. ()",
     end)
   end)
 
@@ -56,8 +122,8 @@ describe('Json module', function()
     end)
 
     it('when load nested objects', function()
-      local a = json.load([[ {"a":[{"b":[1, 2, 3], "c":{}}]} ]])
-      assert.are.same({a={{b={1,2,3}, c={}}}}, a)
+      local a = json.load([[ {"a":[{"b":[1, 2, 3], "c":{}}, {}]} ]])
+      assert.are.same({a={{b={1,2,3}, c={}}, {}}}, a)
     end)
   end)
 

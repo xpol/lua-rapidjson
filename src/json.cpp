@@ -1,126 +1,144 @@
+#include <vector>
+
 extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
 }
+
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/reader.h"
-#include <vector>
+#include "rapidjson/error/error.h"
+#include "rapidjson/error/en.h"
+
+using namespace rapidjson;
 
 static int json_null(lua_State* L);
 
+struct ToLuaHandler;
+
+
+
 struct Ctx {
-	virtual void submit(lua_State* L) = 0;
-	virtual ~Ctx() {}
-};
-
-struct TopCtx : public Ctx {
-	virtual void submit(lua_State* L) {}
-};
-
-struct ObjectCtx :public Ctx {
-	ObjectCtx(int table) : table_(table) {}
-	virtual void submit(lua_State* L)
+	Ctx(): fn_(&topFn){}
+	Ctx(const Ctx& rhs): table_(rhs.table_), index(rhs.index), fn_(rhs.fn_)
 	{
-		lua_rawset(L, table_);
+	}
+	const Ctx& operator=(const Ctx& rhs){
+		if (this != &rhs) {
+			table_ = rhs.table_;
+			index = rhs.index;
+			fn_ = rhs.fn_;
+		}
+		return *this;
+	}
+	static Ctx Object(int table) {
+		return Ctx(table, &objectFn);
+	}
+	static Ctx Array(int table)
+	{
+		return Ctx(table, &arrayFn);
+	}
+	void submit(lua_State* L)
+	{
+		fn_(L, this);
 	}
 private:
-	int table_;
-};
+	Ctx(int table, void(*f)(lua_State* L, Ctx* ctx)) : table_(table), index(1), fn_(f) {}
 
-struct ArrayCtx : public Ctx {
-	ArrayCtx(int table) : table_(table), index(1) {}
-	virtual void submit(lua_State* L)
-	{
-		lua_rawseti(L, table_, index);
-		++index;
-	}
-private:
 	int table_;
 	int index;
+	void(*fn_)(lua_State* L, Ctx* ctx);
 
+	static void objectFn(lua_State* L, Ctx* ctx)
+	{
+		lua_rawset(L, ctx->table_);
+	}
+
+	static void arrayFn(lua_State* L, Ctx* ctx)
+	{
+		lua_rawseti(L, ctx->table_, ctx->index++);
+	}
+	static void topFn(lua_State* L, Ctx* ctx)
+	{
+	}
 };
 
 struct ToLuaHandler {
-	ToLuaHandler(lua_State* aL) : L(aL) { current_ = &root; }
-	inline bool status() {
-		return !stack_.empty();
-	}
+	ToLuaHandler(lua_State* aL) : L(aL) {stack_.reserve(32);}
+
 	bool Null() {
 		json_null(L);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool Bool(bool b) {
 		lua_pushboolean(L, b);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool Int(int i) {
 		lua_pushinteger(L, i);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool Uint(unsigned u) {
 		lua_pushinteger(L, u);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool Int64(int64_t i) {
 		lua_pushinteger(L, i);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool Uint64(uint64_t u) {
 		lua_pushinteger(L, u);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool Double(double d) {
 		lua_pushnumber(L, d);
-		current_->submit(L);
-		return !stack_.empty();
+		current_.submit(L);
+		return true;
 	}
-	bool String(const char* str, rapidjson::SizeType length, bool copy) {
+	bool String(const char* str, SizeType length, bool copy) {
 		lua_pushlstring(L, str, length);
-		current_->submit(L);
-		return status();
+		current_.submit(L);
+		return true;
 	}
 	bool StartObject() {
-		lua_createtable(L, 0, 4);
+		lua_createtable(L, 0, 0);
 		stack_.push_back(current_);
-		current_ = new ObjectCtx(lua_gettop(L));
+		current_ = Ctx::Object(lua_gettop(L));
 		return true;
 	}
-	bool Key(const char* str, rapidjson::SizeType length, bool copy) {
+	bool Key(const char* str, SizeType length, bool copy) {
 		lua_pushlstring(L, str, length);
 		return true;
 	}
-	bool EndObject(rapidjson::SizeType memberCount) {
-		delete current_;
+	bool EndObject(SizeType memberCount) {
 		current_ = stack_.back();
 		stack_.pop_back();
-		current_->submit(L);
+		current_.submit(L);
 		return true;
 	}
 	bool StartArray() {
-		lua_createtable(L, 4, 0);
+		lua_createtable(L, 0, 0);
 		stack_.push_back(current_);
-		current_ = new ArrayCtx(lua_gettop(L));
+		current_ = Ctx::Array(lua_gettop(L));
 		return true;
 	}
-	bool EndArray(rapidjson::SizeType elementCount) {
-		delete current_;
+	bool EndArray(SizeType elementCount) {
 		current_ = stack_.back();
 		stack_.pop_back();
-		current_->submit(L);
+		current_.submit(L);
 		return true;
 	}
 private:
 	lua_State* L;
-	TopCtx root;
-	std::vector < Ctx* > stack_;
-	Ctx* current_;
+	std::vector < Ctx > stack_;
+	Ctx current_;
 };
 
 static int json_load(lua_State* L)
@@ -129,25 +147,24 @@ static int json_load(lua_State* L)
 
 	const char* contents = luaL_checklstring(L, 1, &len);
 
-	if (len < 2 || lua_isnumber(L, 1))
+	if (lua_isnumber(L, 1))
 	{
 		lua_pushnil(L);
 		return 1;
 	}
-
 	int top = lua_gettop(L);
 	ToLuaHandler handler(L);
-	rapidjson::Reader reader;
-	rapidjson::StringStream ss(contents);
-	reader.Parse(ss, handler);
+	Reader reader;
+	StringStream ss(contents);
+	ParseResult r = reader.Parse(ss, handler);
 
-	if (!lua_istable(L, -1))
-	{
+	if (!r) {
 		lua_settop(L, top);
 		lua_pushnil(L);
+		lua_pushfstring(L, "%s (%d)", GetParseError_En(r.Code()), r.Offset());
+		return 2;
 	}
-
-    return 1;
+	return 1;
 }
 
 
