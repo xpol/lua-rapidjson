@@ -17,10 +17,6 @@ describe('json.load()', function()
       assert.are.equal(nil, r)
       assert.are.equal('string', type(m))
 
-      r, m = json.load('rapidjson/bin/jsonchecker/fail1.json')
-      assert.are.equal(nil, r)
-      assert.are.equal('string', type(m))
-
       r, m = json.load('rapidjson/bin/jsonchecker/fail10.json')
       assert.are.equal(nil, r)
       assert.are.equal('string', type(m))
@@ -52,10 +48,6 @@ describe('json.load()', function()
       r, m = json.load('rapidjson/bin/jsonchecker/fail17.json')
       assert.are.equal(nil, r)
       assert.are.equal('string', type(m))
-
-      --r, m = json.load('rapidjson/bin/jsonchecker/fail18.json')
-      --assert.are.equal(nil, r)
-      --assert.are.equal('string', type(m))
 
       r, m = json.load('rapidjson/bin/jsonchecker/fail19.json')
       assert.are.equal(nil, r)

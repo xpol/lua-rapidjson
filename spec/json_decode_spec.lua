@@ -1,19 +1,14 @@
 --luacheck: ignore describe it
 describe('json.decode()', function()
   local json = require('json')
-  describe('should return nil', function()
-    it('when decode string with length < 2', function()
-      local r, m = json.decode('1')
-      assert.are.equal(nil, r)
-      assert.are.equal('A JSON payload should be an object or array.', m)
-    end)
-
-    it('when decode numbers', function()
-      for _, v in ipairs({1, 10000, 100.0}) do
-        local r, m = json.decode(v)
-        assert.are.equal(nil, r)
-        assert.are.equal('A JSON payload should be an object or array.', m)
-      end
+  describe('should return value', function()
+    it('when decode values without array or object', function()
+      assert.are.equal('very funny', json.decode('"very funny"'))
+      assert.are.equal(1234, json.decode('1234'))
+      assert.are.equal(12.34, json.decode('12.34'))
+      assert.are.equal(json.null, json.decode('null'))
+      assert.are.equal(true, json.decode('true'))
+      assert.are.equal(false, json.decode('false'))
     end)
 
     it('when parse invalid json data', function()
@@ -25,11 +20,7 @@ describe('json.decode()', function()
       idx = string.find(m, "The document is empty.", 1, true)
       assert.are_not.equal(nil, idx)
 
-      assert.are.equal(nil, (json.decode('1234')))
-      assert.are.equal(nil, (json.decode('12.34')))
-      assert.are.equal(nil, (json.decode('null')))
-      assert.are.equal(nil, (json.decode('true')))
-      assert.are.equal(nil, (json.decode('false')))
+
 
       r, m = json.decode('{}10')
       assert.are.equal(nil, r)

@@ -29,7 +29,7 @@ if (RELEASE)
 endif()
 
 if (NOT LUA_INCLUDE_DIR)
-    message('Using system lua...')
+    message("Using system lua...")
     find_package(Lua REQUIRED)
 endif()
 

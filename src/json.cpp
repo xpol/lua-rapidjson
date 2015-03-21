@@ -68,7 +68,7 @@ private:
 };
 
 struct ToLuaHandler {
-	ToLuaHandler(lua_State* aL) : L(aL), hasError(true) {stack_.reserve(32);}
+	ToLuaHandler(lua_State* aL) : L(aL) {stack_.reserve(32);}
 
 	bool Null() {
 		json_null(L);
@@ -124,7 +124,6 @@ struct ToLuaHandler {
 		current_ = stack_.back();
 		stack_.pop_back();
 		current_.submit(L);
-		hasError = false;
 		return true;
 	}
 	bool StartArray() {
@@ -137,10 +136,8 @@ struct ToLuaHandler {
 		current_ = stack_.back();
 		stack_.pop_back();
 		current_.submit(L);
-		hasError = false;
 		return true;
 	}
-	bool hasError;
 private:
 	lua_State* L;
 	std::vector < Ctx > stack_;
@@ -155,13 +152,10 @@ inline int decode(lua_State* L, Stream* s)
 	Reader reader;
 	ParseResult r = reader.Parse(*s, handler);
 
-	if (!r || handler.hasError) {
+	if (!r) {
 		lua_settop(L, top);
 		lua_pushnil(L);
-		if (r.Code() == kParseErrorNone && handler.hasError)
-			lua_pushliteral(L, "A JSON payload should be an object or array.");
-		else
-			lua_pushfstring(L, "%s (%d)", GetParseError_En(r.Code()), r.Offset());
+		lua_pushfstring(L, "%s (%d)", GetParseError_En(r.Code()), r.Offset());
 		return 2;
 	}
 
