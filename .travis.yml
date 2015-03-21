@@ -1,0 +1,35 @@
+language: c++
+
+# Try using multiple Lua Implementations
+env:
+  - LUA="lua5.1" LUA_VERSION='5.1'
+  - LUA="lua5.2" LUA_VERSION='5.2'
+  # Wee need to install lua5.1 or luarocks won't build
+  - LUA="luajit" LUA_VERSION='5.1'
+  # - TOOL="gcc"                  # Use native compiler (GCC usually)
+  # - TOOL="clang"                # Use clang
+  # - TOOL="i686-w64-mingw32"     # 32bit MinGW
+  # - TOOL="x86_64-w64-mingw32"   # 64bit MinGW
+
+
+branches:
+  only:
+    - master
+
+install:
+  - sudo apt-get install lua$LUA_VERSION liblua$LUA_VERSION-dev
+  - test "$LUA" = "luajit" && git clone http://luajit.org/git/luajit-2.0.git && cd luajit-2.0/ && sudo make install && cd .. || true
+  - git clone git://github.com/keplerproject/luarocks.git
+  - cd luarocks
+  - ./configure --lua-version=$LUA_VERSION --versioned-rocks-dir
+  - make build
+  - sudo make install
+  - cd ..
+  # Install testing dependency
+  - sudo luarocks-$LUA_VERSION install busted
+  # Build module
+  - sudo luarocks-$LUA_VERSION make
+
+# Run tests
+script:
+  - busted
