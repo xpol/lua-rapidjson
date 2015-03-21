@@ -12,6 +12,7 @@ extern "C" {
 #include "rapidjson/error/en.h"
 #include "rapidjson/error/error.h"
 #include "rapidjson/filereadstream.h"
+#include "rapidjson/encodedstream.h"
 #include "rapidjson/reader.h"
 
 using namespace rapidjson;
@@ -196,7 +197,8 @@ static int json_load(lua_State* L)
 	static const size_t BufferSize = 16*1024;
 	std::vector<char> readBuffer(BufferSize);
 	FileReadStream fs(fp, &readBuffer.front(), BufferSize);
-	int n = decode(L, &fs);
+    AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
+	int n = decode(L, &eis);
 	fclose(fp);
 	return n;
 }
