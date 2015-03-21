@@ -27,6 +27,7 @@ install:
   - cd ..
   # Install testing dependency
   - sudo luarocks-$LUA_VERSION install busted
+  - sudo luarocks-$LUA_VERSION install utf8
   # Build module
   - sudo luarocks-$LUA_VERSION make
 

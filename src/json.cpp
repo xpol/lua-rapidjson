@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <vector>
 
 extern "C" {
@@ -7,9 +8,11 @@ extern "C" {
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
-#include "rapidjson/reader.h"
-#include "rapidjson/error/error.h"
+#include "rapidjson/encodings.h"
 #include "rapidjson/error/en.h"
+#include "rapidjson/error/error.h"
+#include "rapidjson/filereadstream.h"
+#include "rapidjson/reader.h"
 
 using namespace rapidjson;
 
@@ -65,7 +68,7 @@ private:
 };
 
 struct ToLuaHandler {
-	ToLuaHandler(lua_State* aL) : L(aL) {stack_.reserve(32);}
+	ToLuaHandler(lua_State* aL) : L(aL), hasError(true) {stack_.reserve(32);}
 
 	bool Null() {
 		json_null(L);
@@ -121,6 +124,7 @@ struct ToLuaHandler {
 		current_ = stack_.back();
 		stack_.pop_back();
 		current_.submit(L);
+		hasError = false;
 		return true;
 	}
 	bool StartArray() {
@@ -133,38 +137,44 @@ struct ToLuaHandler {
 		current_ = stack_.back();
 		stack_.pop_back();
 		current_.submit(L);
+		hasError = false;
 		return true;
 	}
+	bool hasError;
 private:
 	lua_State* L;
 	std::vector < Ctx > stack_;
 	Ctx current_;
 };
 
+template<typename Stream>
+inline int decode(lua_State* L, Stream& s)
+{
+	int top = lua_gettop(L);
+	ToLuaHandler handler(L);
+	Reader reader;
+	ParseResult r = reader.Parse(s, handler);
+
+	if (!r || handler.hasError) {
+		lua_settop(L, top);
+		lua_pushnil(L);
+		if (r.Code() == kParseErrorNone && handler.hasError)
+			lua_pushliteral(L, "A JSON payload should be an object or array.");
+		else
+			lua_pushfstring(L, "%s (%d)", GetParseError_En(r.Code()), r.Offset());
+		return 2;
+	}
+
+	return 1;
+}
+
 static int json_decode(lua_State* L)
 {
 	size_t len = 0;
 
 	const char* contents = luaL_checklstring(L, 1, &len);
+	return decode(L, StringStream(contents));
 
-	if (lua_isnumber(L, 1))
-	{
-		lua_pushnil(L);
-		return 1;
-	}
-	int top = lua_gettop(L);
-	ToLuaHandler handler(L);
-	Reader reader;
-	StringStream ss(contents);
-	ParseResult r = reader.Parse(ss, handler);
-
-	if (!r) {
-		lua_settop(L, top);
-		lua_pushnil(L);
-		lua_pushfstring(L, "%s (%d)", GetParseError_En(r.Code()), r.Offset());
-		return 2;
-	}
-	return 1;
 }
 
 static int json_encode(lua_State* L)
@@ -174,7 +184,26 @@ static int json_encode(lua_State* L)
 
 static int json_load(lua_State* L)
 {
-	return 0;
+	const char* filename = luaL_checklstring(L, 1, NULL);
+	FILE* fp = NULL;
+#if WIN32
+	fopen_s(&fp, filename, "rb");
+#else
+	fp = fopen(filename, "r");
+#endif
+	if (fp == NULL)
+	{
+		lua_pushnil(L);
+		lua_pushliteral(L, "error while open file");
+		return 2;
+	}
+
+	static const size_t BufferSize = 16*1024;
+	std::vector<char> readBuffer(BufferSize);
+	FileReadStream fs(fp, &readBuffer.front(), BufferSize);
+	int n = decode(L, fs);
+	fclose(fp);
+	return n;
 }
 
 static int json_dump(lua_State* L)
