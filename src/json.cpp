@@ -148,12 +148,12 @@ private:
 };
 
 template<typename Stream>
-inline int decode(lua_State* L, Stream& s)
+inline int decode(lua_State* L, Stream* s)
 {
 	int top = lua_gettop(L);
 	ToLuaHandler handler(L);
 	Reader reader;
-	ParseResult r = reader.Parse(s, handler);
+	ParseResult r = reader.Parse(*s, handler);
 
 	if (!r || handler.hasError) {
 		lua_settop(L, top);
@@ -173,7 +173,8 @@ static int json_decode(lua_State* L)
 	size_t len = 0;
 
 	const char* contents = luaL_checklstring(L, 1, &len);
-	return decode(L, StringStream(contents));
+	StringStream s(contents);
+	return decode(L, &s);
 
 }
 
@@ -201,7 +202,7 @@ static int json_load(lua_State* L)
 	static const size_t BufferSize = 16*1024;
 	std::vector<char> readBuffer(BufferSize);
 	FileReadStream fs(fp, &readBuffer.front(), BufferSize);
-	int n = decode(L, fs);
+	int n = decode(L, &fs);
 	fclose(fp);
 	return n;
 }
