@@ -141,7 +141,7 @@ private:
 	Ctx current_;
 };
 
-static int json_load(lua_State* L)
+static int json_decode(lua_State* L)
 {
 	size_t len = 0;
 
@@ -167,6 +167,15 @@ static int json_load(lua_State* L)
 	return 1;
 }
 
+static int json_encode(lua_State* L)
+{
+	return 0;
+}
+
+static int json_load(lua_State* L)
+{
+	return 0;
+}
 
 static int json_dump(lua_State* L)
 {
@@ -185,10 +194,17 @@ static int json_null(lua_State* L)
 }
 
 static const luaL_Reg methods[] = {
-  {"load", json_load},
-  {"dump", json_dump},
-  {"null", json_null},
-  {NULL, NULL}
+	// string <--> json
+	{"decode", json_decode},
+	{"encode", json_encode},
+
+	// file <--> json
+	{"load", json_load},
+	{"dump", json_dump},
+
+	// null place holder
+	{"null", json_null},
+	{NULL, NULL}
 };
 
 
