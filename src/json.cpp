@@ -328,20 +328,14 @@ struct encode {
 
 		return is;
 	}
-    
+
     static bool isInteger(lua_State* L, int idx)
     {
 #if LUA_VERSION_NUM >= 503
         if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
             return true;
 #endif
-
-        lua_pushvalue(L, idx); // [value]
-        size_t len;
-        const char* s = lua_tolstring(L, -1, &len);
-        bool is = memchr(s, '.', len) == NULL;
-        lua_pop(L, 1); // []
-        return is;
+        return false;
     }
 
 
