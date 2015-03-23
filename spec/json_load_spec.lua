@@ -200,18 +200,10 @@ describe('json.load()', function()
         1e00,2e00,2e-00
         ,"rosebud"}
 
-        local a9E, a9empty, e9empty, e9E
-
-        a9empty, a[9][''] = a[9][''], nil
-        a9E, a[9]['E'] = a[9]['E'], nil
-
-        e9empty, e[9][''] = e[9][''], nil
-        e9E, e[9]['E'] = e[9]['E'], nil
-
+        assert.are.same(string.format("%.16g", e[9]['E']), string.format("%.16g", a[9]['E']))
+        assert.are.same(string.format("%.16g", e[9]['']), string.format("%.16g", a[9]['']))
+        a[9]['E'], a[9][''], e[9]['E'], e[9][''] = nil, nil, nil, nil
         assert.are.same(e, a)
-
-        assert.are.same(string.format("%.16g", e9E), string.format("%.16g", a9E))
-        assert.are.same(string.format("%.16g", e9empty), string.format("%.16g", a9empty))
 
         a = json.load('rapidjson/bin/jsonchecker/pass2.json')
         assert.are.same({{{{{{{{{{{{{{{{{{{"Not too deep"}}}}}}}}}}}}}}}}}}}, a)

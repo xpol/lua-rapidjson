@@ -158,10 +158,6 @@ describe('json.decode()', function()
 
     end)
 
-    it('should parse all boolean values', function()
-      local a = json.decode([[ [true, false] ]])
-      assert.are.same({true, false}, a)
-    end)
 
     it('shuld parse null', function()
       local a = json.decode([[ [null] ]])
