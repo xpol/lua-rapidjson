@@ -31,17 +31,6 @@ static void setfuncs(lua_State* L, const luaL_Reg *funcs)
 #endif
 }
 
-#if LUA_VERSION_NUM < 503
-static int lua_isinteger(lua_State* L, int idx)
-{
-	lua_pushvalue(L, idx); // [value]
-	size_t len;
-	const char* s = lua_tolstring(L, -1, &len);
-	bool is = memchr(s, '.', len) == NULL;
-	lua_pop(L, 1); // []
-	return is;
-}
-#endif
 
 #if LUA_VERSION_NUM < 502
 #define lua_rawlen   lua_objlen
@@ -325,6 +314,8 @@ struct encode {
 		}
 		bool pretty;
 	};
+
+
 	static bool isJsonNull(lua_State* L, int idx)
 	{
 		lua_pushvalue(L, idx); // [value]
@@ -337,6 +328,21 @@ struct encode {
 
 		return is;
 	}
+    
+    static bool isInteger(lua_State* L, int idx)
+    {
+#if LUA_VERSION_NUM >= 503
+        if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
+            return true;
+#endif
+
+        lua_pushvalue(L, idx); // [value]
+        size_t len;
+        const char* s = lua_tolstring(L, -1, &len);
+        bool is = memchr(s, '.', len) == NULL;
+        lua_pop(L, 1); // []
+        return is;
+    }
 
 
 	static bool emptyTableIsArray(lua_State* L, int idx)
@@ -376,7 +382,7 @@ struct encode {
 			writer->Bool(lua_toboolean(L, -1) != 0);
 			return true;
 		case LUA_TNUMBER:
-			if (lua_isinteger(L, -1))
+			if (isInteger(L, -1))
 				writer->Int64(lua_tointeger(L, -1));
 			else
 				writer->Double(lua_tonumber(L, -1));
