@@ -4,6 +4,7 @@ language: c++
 env:
   - LUA="lua5.1" LUA_VERSION='5.1'
   - LUA="lua5.2" LUA_VERSION='5.2'
+  - LUA="lua5.3" LUA_VERSION='5.3'
   # Wee need to install lua5.1 or luarocks won't build
   - LUA="luajit" LUA_VERSION='5.1'
   # - TOOL="gcc"                  # Use native compiler (GCC usually)

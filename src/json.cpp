@@ -43,6 +43,10 @@ static int lua_isinteger(lua_State* L, int idx)
 }
 #endif
 
+#if LUA_VERSION_NUM < 502
+#define lua_rawlen   lua_objlen
+#endif
+
 
 
 FILE* openForRead(const char* filename)
@@ -210,7 +214,7 @@ struct ToLuaHandler {
 	}
 	bool StartArray() {
 		lua_createtable(L, 0, 0);
-		
+
 		// mark as array.
 		luaL_getmetatable(L, "json.array");  //[..., array, json.array]
 		lua_setmetatable(L, -2); // [..., array]
@@ -327,8 +331,8 @@ struct encode {
 
 		json_null(L); // [value, json.null]
 
-		bool is = lua_equal(L, -1, -2) != 0;
-		
+		bool is = lua_rawequal(L, -1, -2) != 0;
+
 		lua_pop(L, 2); // []
 
 		return is;
@@ -352,7 +356,7 @@ struct encode {
 	{
 		if (keys.empty()) // can detect empty table by its keys
 			return emptyTableIsArray(L, idx);
-		if (lua_objlen(L, -1) == keys.size()) // array
+		if (lua_rawlen(L, -1) == keys.size()) // array
 			return true;
 		return false;
 	}
@@ -426,7 +430,7 @@ struct encode {
 			// [table, key]
 		}
 		// [table]
-		return isArray(L, -1, keys) ? 
+		return isArray(L, -1, keys) ?
 			encodeArray(L, writer) :
 			encodeObject(L, writer, keys);
 	}
@@ -460,7 +464,7 @@ struct encode {
 	{
 		// [table]
 		writer->StartArray();
-		const size_t MAX =  lua_objlen(L, -1);
+		size_t MAX =  lua_rawlen(L, -1);
 		for (size_t n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
@@ -493,7 +497,6 @@ static int json_encode(lua_State* L)
 {
 	encode::option opt(L, 2);
 
-	bool ok = true;
 	StringBuffer s;
 
 	if (!encode::encodeWithOption(L, &s, 1, opt))
@@ -519,7 +522,7 @@ static int json_dump(lua_State* L)
 		lua_pushliteral(L, "error while open file");
 		return 2;
 	}
-	
+
 	static const size_t sz = 16 * 1024;
 	std::vector<char> buffer(sz);
 	FileWriteStream fs(fp, &buffer.front(), sz);
