@@ -17,8 +17,8 @@ describe('json.dump()', function()
   end)
   it('when load valid json file', function()
     local e, a = check('rapidjson/bin/jsonchecker/pass1.json')
-    assert.are.same(string.format("%.16g", e[9]['E']), string.format("%.16g", a[9]['E']))
-    assert.are.same(string.format("%.16g", e[9]['']),string.format("%.16g", a[9]['']))
+    assert.are.same(string.format("%.10g", e[9]['E']), string.format("%.10g", a[9]['E']))
+    assert.are.same(string.format("%.10g", e[9]['']),string.format("%.10g", a[9]['']))
     a[9]['E'], a[9][''], e[9]['E'], e[9][''] = nil, nil, nil, nil
     assert.are.same(e, a)
 
@@ -29,8 +29,8 @@ describe('json.dump()', function()
   it('should dump with pretty option = ture', function()
     local option = {pretty=true}
     local e, a = check('rapidjson/bin/jsonchecker/pass1.json', option)
-    assert.are.same(string.format("%.16g", e[9]['E']), string.format("%.16g", a[9]['E']))
-    assert.are.same(string.format("%.16g", e[9]['']),string.format("%.16g", a[9]['']))
+    assert.are.same(string.format("%.10g", e[9]['E']), string.format("%.10g", a[9]['E']))
+    assert.are.same(string.format("%.10g", e[9]['']),string.format("%.10g", a[9]['']))
     a[9]['E'], a[9][''], e[9]['E'], e[9][''] = nil, nil, nil, nil
     assert.are.same(e, a)
 
@@ -41,8 +41,8 @@ describe('json.dump()', function()
   it('should dump with pretty option = false', function()
     local option = {pretty=false}
     local e, a = check('rapidjson/bin/jsonchecker/pass1.json', option)
-    assert.are.same(string.format("%.16g", e[9]['E']), string.format("%.16g", a[9]['E']))
-    assert.are.same(string.format("%.16g", e[9]['']),string.format("%.16g", a[9]['']))
+    assert.are.same(string.format("%.10g", e[9]['E']), string.format("%.10g", a[9]['E']))
+    assert.are.same(string.format("%.10g", e[9]['']),string.format("%.10g", a[9]['']))
     a[9]['E'], a[9][''], e[9]['E'], e[9][''] = nil, nil, nil, nil
     assert.are.same(e, a)
     assert.are.same(check('rapidjson/bin/jsonchecker/pass2.json', option))
@@ -52,8 +52,8 @@ describe('json.dump()', function()
   it('should dump with empty option', function()
     local option = {}
     local e, a = check('rapidjson/bin/jsonchecker/pass1.json', option)
-    assert.are.same(string.format("%.16g", e[9]['E']), string.format("%.16g", a[9]['E']))
-    assert.are.same(string.format("%.16g", e[9]['']),string.format("%.16g", a[9]['']))
+    assert.are.same(string.format("%.10g", e[9]['E']), string.format("%.10g", a[9]['E']))
+    assert.are.same(string.format("%.10g", e[9]['']),string.format("%.10g", a[9]['']))
     a[9]['E'], a[9][''], e[9]['E'], e[9][''] = nil, nil, nil, nil
     assert.are.same(e, a)
 

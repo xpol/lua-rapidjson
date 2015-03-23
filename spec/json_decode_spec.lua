@@ -100,7 +100,6 @@ describe('json.decode()', function()
 
   describe('should raise error', function()
     it('when arg type are neither string nor number', function()
-      -- bad argument #1 to 'decode' (string expected, got ...)
       assert.has_error(function() json.decode(true) end)
       assert.has_error(function() json.decode(false) end)
       assert.has_error(function() json.decode(function()end) end)
