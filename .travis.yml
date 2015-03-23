@@ -18,7 +18,7 @@ before_install:
   - bash .travis/setup_lua.sh
   # Install testing dependency
   - sudo luarocks install busted
-  - sudo luarocks install utf8
+  - sudo luarocks install dromozoa-utf8
 
 install:
   - sudo luarocks make

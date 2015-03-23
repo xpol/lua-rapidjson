@@ -63,13 +63,13 @@ describe('json.dump()', function()
 
   it('should not dump with option other than table or nil', function()
     assert.has.errors(function()
-      json.dump({}, "dump.json", 1)
+      assert(json.dump({}, "dump.json", 1))
     end, [[bad argument #3 to 'dump' (table expected, got number)]])
   end)
 
-  it('should raise error when filename ni not string', function()
+  it('should raise error when filename is not string', function()
     assert.has.errors(function()
-      json.dump({}, nil, {})
+      assert(json.dump({}, nil, {}))
     end, [[bad argument #2 to 'dump' (string expected, got nil)]])
   end)
 

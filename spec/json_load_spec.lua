@@ -1,5 +1,5 @@
 --luacheck: ignore describe it
-local utf8 = require('utf8') -- luarocks install utf8
+local utf8 = require "dromozoa.utf8.pure" -- luarocks install utf8
 describe('json.load()', function()
   local json = require('json')
   describe('should return nil', function()
