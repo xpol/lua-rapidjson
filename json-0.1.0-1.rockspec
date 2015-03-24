@@ -12,8 +12,12 @@ description = {
 
         Based on the very fast json library RapidJSON.
 
-        Provide `json.load()` to convert json to lua table.
-        And `json.dump()` to dump lua table to json string.
+        Provided API:
+
+        - `json.decode()` decode json to lua table.
+        - `json.encode()` encode lua table to json string.
+        - `json.load()` load json file into lua table.
+        - `json.dump()` dump lua table to json file.
   ]],
   homepage = "https://github.com/xpol/json",
   license = "MIT"
