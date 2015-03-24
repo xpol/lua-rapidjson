@@ -14,10 +14,10 @@ cd %APPVEYOR_BUILD_FOLDER%
 :: I hate batch files.
 if "%~1" EQU "_GO_" (shift /1 & goto :main)
 cmd /c ^""%~f0" _GO_ %*^"
-if exist %APPVEYOR_BUILD_FOLDER%\.appveyor\setpaths.bat (
+if exist %APPVEYOR_BUILD_FOLDER%\.scripts\setpaths.bat (
 	endlocal
-	call %APPVEYOR_BUILD_FOLDER%\.appveyor\setpaths.bat
-	del %APPVEYOR_BUILD_FOLDER%\.appveyor\setpaths.bat
+	call %APPVEYOR_BUILD_FOLDER%\.scripts\setpaths.bat
+	del %APPVEYOR_BUILD_FOLDER%\.scripts\setpaths.bat
 )
 exit /B
 
@@ -88,9 +88,9 @@ rem set LUA_CPATH=%ProgramFiles(x86)%\LuaRocks\systree\lib\lua\%LUA_SHORTV%\?.dl
 call luarocks --version || call :die
 
 :: Hack. Create a script that will set all the variables we want to set in the environment.
-ECHO set PATH=%PATH%>> "%APPVEYOR_BUILD_FOLDER%\.appveyor\setpaths.bat"
-ECHO set LUA_DIR=%LUA_DIR%>> "%APPVEYOR_BUILD_FOLDER%\.appveyor\setpaths.bat"
-call luarocks path>> "%APPVEYOR_BUILD_FOLDER%\.appveyor\setpaths.bat"
+ECHO set PATH=%PATH%>> "%APPVEYOR_BUILD_FOLDER%\.scripts\setpaths.bat"
+ECHO set LUA_DIR=%LUA_DIR%>> "%APPVEYOR_BUILD_FOLDER%\.scripts\setpaths.bat"
+call luarocks path>> "%APPVEYOR_BUILD_FOLDER%\.scripts\setpaths.bat"
 
 endlocal
 
