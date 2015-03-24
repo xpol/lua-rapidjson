@@ -8,7 +8,7 @@
 
 LUAJIT_BASE="LuaJIT-2.0.3"
 
-source .travis/platform.sh
+source .scripts/platform.sh
 
 LUAJIT="no"
 
