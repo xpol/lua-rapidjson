@@ -1,4 +1,4 @@
-version: 0.0.1.{build}-test
+version: 0.1.1.{build}
 
 os:
 - Windows Server 2012 R2
@@ -52,7 +52,7 @@ before_build:
 - echo "Installing external deps"
 
 build_script:
-- luarocks makes
+- luarocks make
 
 before_test:
 # install test only deps
