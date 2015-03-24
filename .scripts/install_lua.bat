@@ -78,8 +78,12 @@ call !LUA! -v
 
 :: Downloads and installs LuaRocks
 cd %APPVEYOR_BUILD_FOLDER%
-call :download %LUAROCKS_URL%/luarocks-%LUAROCKS_VER%-win32.zip
-call :extract_zip downloads\luarocks-%LUAROCKS_VER%-win32.zip downloads\luarocks-%LUAROCKS_VER%-win32
+if !LUAROCKS_VER!==HEAD (
+	call :download %LUAROCKS_URL%/luarocks-%LUAROCKS_VER%-win32.zip
+	call :extract_zip downloads\luarocks-%LUAROCKS_VER%-win32.zip downloads\luarocks-%LUAROCKS_VER%-win32
+) else (
+	git clone https://github.com/keplerproject/luarocks.git downloads\luarocks-%LUAROCKS_VER%-win32
+)
 cd downloads\luarocks-%LUAROCKS_VER%-win32
 call install.bat /LUA %LUA_DIR% /Q /LV %LUA_SHORTV% || call :die
 set PATH=%PATH%;%ProgramFiles(x86)%\LuaRocks\%LUAROCKS_SHORTV%\;%ProgramFiles(x86)%\LuaRocks\systree\bin

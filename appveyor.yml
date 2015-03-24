@@ -9,7 +9,7 @@ environment:
   LUAURL: http://www.lua.org/ftp
   LUAROCKS_URL: http://keplerproject.github.io/luarocks/releases
   LUAROCKS_REPO: http://rocks.moonscript.org
-  LUAROCKS_VER: 2.2.1
+  LUAROCKS_VER: HEAD #2.2.1
   LUAROCKS_SHORTV: 2.2
 
   #LUA: the Lua interpreter. either Lua or LuaJIT
