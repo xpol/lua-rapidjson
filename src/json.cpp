@@ -93,8 +93,8 @@ static int json_array(lua_State* L)
 
 
 struct Ctx {
-	Ctx(): fn_(&topFn){}
-	Ctx(const Ctx& rhs): table_(rhs.table_), index(rhs.index), fn_(rhs.fn_)
+	Ctx() : fn_(&topFn){}
+	Ctx(const Ctx& rhs) : table_(rhs.table_), index(rhs.index), fn_(rhs.fn_)
 	{
 	}
 	const Ctx& operator=(const Ctx& rhs){
@@ -138,7 +138,7 @@ private:
 };
 
 struct ToLuaHandler {
-	ToLuaHandler(lua_State* aL) : L(aL) {stack_.reserve(32);}
+	ToLuaHandler(lua_State* aL) : L(aL) { stack_.reserve(32); }
 
 	bool Null() {
 		json_null(L);
@@ -265,10 +265,10 @@ static int json_load(lua_State* L)
 		return 2;
 	}
 
-	static const size_t BufferSize = 16*1024;
+	static const size_t BufferSize = 16 * 1024;
 	std::vector<char> readBuffer(BufferSize);
 	FileReadStream fs(fp, &readBuffer.front(), BufferSize);
-    AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
+	AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
 	int n = decode(L, &eis);
 	fclose(fp);
 	return n;
@@ -329,14 +329,14 @@ struct encode {
 		return is;
 	}
 
-    static bool isInteger(lua_State* L, int idx)
-    {
+	static bool isInteger(lua_State* L, int idx)
+	{
 #if LUA_VERSION_NUM >= 503
-        if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
-            return true;
+		if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
+			return true;
 #endif
-        return false;
-    }
+		return false;
+	}
 
 
 	static bool emptyTableIsArray(lua_State* L, int idx)
@@ -464,7 +464,7 @@ struct encode {
 	{
 		// [table]
 		writer->StartArray();
-		size_t MAX =  lua_rawlen(L, -1);
+		size_t MAX = lua_rawlen(L, -1);
 		for (size_t n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
@@ -535,7 +535,7 @@ static int json_dump(lua_State* L)
 		return 2;
 	}
 	lua_pushboolean(L, true);
-    return 1;
+	return 1;
 }
 
 
@@ -561,26 +561,24 @@ extern "C" {
 
 LUALIB_API int luaopen_json(lua_State* L)
 {
-    lua_newtable(L); // [json]
+	lua_newtable(L); // [json]
 
 	setfuncs(L, methods); // [json]
-	{
-		restore_stack save(L);
-		lua_getfield(L, -1, "null"); // [json, json.null]
-		null = luaL_ref(L, LUA_REGISTRYINDEX); // [json]
 
-		luaL_newmetatable(L, "json.object"); // [json, json.object]
-		lua_pushliteral(L, "object"); // [json, json.object, 'object']
-		lua_setfield(L, -2, __JSONTYPE); // [json, json.object]
-		lua_pop(L, 1); // [json]
+	lua_getfield(L, -1, "null"); // [json, json.null]
+	null = luaL_ref(L, LUA_REGISTRYINDEX); // [json]
 
-		luaL_newmetatable(L, "json.array"); // [json, json.array]
-		lua_pushliteral(L, "array"); // [json, json.array, 'array']
-		lua_setfield(L, -2, __JSONTYPE); // [json, json.array]
-		lua_pop(L, 1); // [json]
-	}
+	luaL_newmetatable(L, "json.object"); // [json, json.object]
+	lua_pushliteral(L, "object"); // [json, json.object, 'object']
+	lua_setfield(L, -2, __JSONTYPE); // [json, json.object]
+	lua_pop(L, 1); // [json]
 
-    return 1;
+	luaL_newmetatable(L, "json.array"); // [json, json.array]
+	lua_pushliteral(L, "array"); // [json, json.array, 'array']
+	lua_setfield(L, -2, __JSONTYPE); // [json, json.array]
+	lua_pop(L, 1); // [json]
+
+	return 1;
 }
 
 }
