@@ -264,4 +264,4 @@ Same as json.array() except the metatable field `__jsontype` is set as `'array'`
 [Trivis]:https://travis-ci.org/xpol/json "Travis page"
 [TrivisStatus]:https://travis-ci.org/xpol/json.png
 [AppVeyor]: https://ci.appveyor.com/project/xpol/json/branch/master "AppVeyor page"
-[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/c0t34e7590kbghti/branch/master?svg=true "AppVeyor build status"
+[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/c0t34e7590kbghti/branch/master?svg=true
