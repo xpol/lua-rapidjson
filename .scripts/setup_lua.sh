@@ -32,6 +32,9 @@ if [ "$LUAJIT" == "yes" ]; then
     curl http://luajit.org/download/$LUAJIT_BASE.tar.gz | tar xz;
   else
     git clone http://luajit.org/git/luajit-2.0.git $LUAJIT_BASE;
+    if [ $? -ne 0 ]; then
+      git clone git://repo.or.cz/luajit-2.0.git $LUAJIT_BASE;
+    fi
   fi
 
   cd $LUAJIT_BASE

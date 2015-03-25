@@ -30,12 +30,15 @@ mkdir downloads 2>NUL
 :: Download and compile Lua (or LuaJIT)
 if "%LUA%"=="luajit" (
 	set lj_dest_folder=c:\lj%LJ_SHORTV%
-	
+
 	if !LJ_SHORTV!==2.1 (
 		rem set lj_source_folder=c:\luajit-%LJ_VER%
 		set lj_source_folder=%APPVEYOR_BUILD_FOLDER%\downloads\luajit-%LJ_VER%
 		if not exist !lj_source_folder! (
-			git clone http://luajit.org/git/luajit-2.0.git !lj_source_folder! || call :die
+			git clone http://luajit.org/git/luajit-2.0.git !lj_source_folder!
+			if errorlevel 1 (
+				git clone git://repo.or.cz/luajit-2.0.git !lj_source_folder! || call :die
+			)
 		)
 		cd !lj_source_folder!\src
 		git checkout v2.1 || call :die
