@@ -19,7 +19,15 @@
 
 using namespace rapidjson;
 
-#define __JSONTYPE  "__jsontype"
+static const char* JSON_TABLE_TYPE_FIELD = "__jsontype";
+enum json_table_type {
+	JSON_TABLE_TYPE_OBJECT = 0,
+	JSON_TABLE_TYPE_ARRAY = 1,
+	JSON_TABLE_TYPE_MAX
+};
+
+static const char* JSON_TABLE_TYPE_NAMES[JSON_TABLE_TYPE_MAX] = { "object", "array" };
+static const char* JSON_TABLE_TYPE_METAS[JSON_TABLE_TYPE_MAX] = { "json.object", "json.array" };
 
 
 static void setfuncs(lua_State* L, const luaL_Reg *funcs)
@@ -74,28 +82,52 @@ static int json_null(lua_State* L)
 	return 1;
 }
 
+static void createSharedMeta(lua_State* L, json_table_type type)
+{
+	luaL_newmetatable(L, JSON_TABLE_TYPE_METAS[type]); // [meta]
+	lua_pushstring(L, JSON_TABLE_TYPE_NAMES[type]); // [meta, name]
+	lua_setfield(L, -2, JSON_TABLE_TYPE_FIELD); // [meta]
+	lua_pop(L, 1); // []
+}
+
+static int makeTableType(lua_State* L, int idx, json_table_type type)
+{
+	bool isnoarg = lua_isnoneornil(L, idx);
+	bool istable = lua_istable(L, idx);
+	if (!isnoarg && !istable)
+		return luaL_argerror(L, idx, "optional table excepted");
+
+	if (isnoarg)
+		lua_createtable(L, 0, 0); // [table]
+	else // is table.
+	{
+		lua_pushvalue(L, idx); // [table]
+		if (lua_getmetatable(L, -1))
+		{
+			// already have a metatable, just set the __jsontype field.
+			// [table, meta]
+			lua_pushstring(L, JSON_TABLE_TYPE_NAMES[type]); // [table, meta, name]
+			lua_setfield(L, -2, JSON_TABLE_TYPE_FIELD); // [table, meta]
+			lua_pop(L, 1); // [table]
+			return 1;
+		}
+		// else fall through
+	}
+
+	// Now we have a table without meta table
+	luaL_getmetatable(L, JSON_TABLE_TYPE_METAS[type]); // [table, meta]
+	lua_setmetatable(L, -2); // [table]
+	return 1;
+}
+
 static int json_object(lua_State* L)
 {
-	if (lua_istable(L, 1))
-		lua_pushvalue(L, 1); // [table, table]
-	else
-		lua_createtable(L, 0, 0); // [table]
-
-	luaL_getmetatable(L, "json.object"); // [..., table, meta]
-	lua_setmetatable(L, -2); // [..., table]
-	return 1;
-
+	return makeTableType(L, 1, JSON_TABLE_TYPE_OBJECT);
 }
 
 static int json_array(lua_State* L)
 {
-	if (lua_istable(L, 1))
-		lua_pushvalue(L, 1); // [table, table]
-	else
-		lua_createtable(L, 0, 0); // [table]
-	luaL_getmetatable(L, "json.array"); // [..., table, meta]
-	lua_setmetatable(L, -2); // [..., table]
-	return 1;
+	return makeTableType(L, 1, JSON_TABLE_TYPE_ARRAY);
 }
 
 
@@ -352,7 +384,7 @@ struct encode {
 		lua_pushvalue(L, idx); // [value]
 
 		lua_getmetatable(L, -1); // [value, meta]
-		lua_getfield(L, -1, __JSONTYPE); // [value, meta, meta.__jsontype]
+		lua_getfield(L, -1, JSON_TABLE_TYPE_FIELD); // [value, meta, meta.__jsontype]
 		if (lua_isnoneornil(L, -1))
 			return false;
 		lua_pushvalue(L, -1);// [value, meta, meta.__jsontype, meta.__jsontype]
@@ -531,7 +563,7 @@ static int json_dump(lua_State* L)
 
 	if (fp == NULL)
 	{
-		lua_pushnil(L);
+		lua_pushboolean(L, false);
 		lua_pushliteral(L, "error while open file");
 		return 2;
 	}
@@ -541,14 +573,11 @@ static int json_dump(lua_State* L)
 	FileWriteStream fs(fp, &buffer.front(), sz);
 	bool ok = encode::encodeWithOption(L, &fs, 1, opt);
 	fclose(fp);
-	if (!ok)
-	{
-		lua_pushnil(L);
-		lua_pushliteral(L, "can't encode to json.");
-		return 2;
-	}
-	lua_pushboolean(L, true);
-	return 1;
+	lua_pushboolean(L, ok);
+	if (ok)
+		return 1;
+	lua_pushliteral(L, "can't encode to json.");
+	return 2;
 }
 
 
@@ -581,15 +610,8 @@ LUALIB_API int luaopen_json(lua_State* L)
 	lua_getfield(L, -1, "null"); // [json, json.null]
 	null = luaL_ref(L, LUA_REGISTRYINDEX); // [json]
 
-	luaL_newmetatable(L, "json.object"); // [json, json.object]
-	lua_pushliteral(L, "object"); // [json, json.object, 'object']
-	lua_setfield(L, -2, __JSONTYPE); // [json, json.object]
-	lua_pop(L, 1); // [json]
-
-	luaL_newmetatable(L, "json.array"); // [json, json.array]
-	lua_pushliteral(L, "array"); // [json, json.array, 'array']
-	lua_setfield(L, -2, __JSONTYPE); // [json, json.array]
-	lua_pop(L, 1); // [json]
+	createSharedMeta(L, JSON_TABLE_TYPE_OBJECT);
+	createSharedMeta(L, JSON_TABLE_TYPE_ARRAY);
 
 	return 1;
 }

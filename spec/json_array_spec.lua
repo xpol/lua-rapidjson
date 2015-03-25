@@ -23,9 +23,7 @@ describe('json.array()', function()
     local r = json.array(t)
 
     assert.are.same(t, r)
-    assert.are_not.equal(oldmt, getmetatable(r)) -- but metatable replaced
-
-    local u = json.array()
-    assert.are.equal(getmetatable(u), getmetatable(r))
+    assert.are.equal(oldmt, getmetatable(r)) -- metatable kept
+    assert.are.equal('array', oldmt.__jsontype)
   end)
 end)

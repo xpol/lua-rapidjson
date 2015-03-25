@@ -217,7 +217,10 @@ json.encode({json.null}) --> '[null]'
 
 Create a new empty table that have metatable field `__jsontype` set as `'object'` so that the `encode` and `dump` function will encode it as json object.
 
-When passed an valid table, `json.object()` will just set above metatable for the table. (The old metatable is overwrote).
+When passed an valid table:
+
+* Passed table do not have metatable, just set above metatable for the table.
+* Passed table already have metatable, just the the metatable field `__jsontype` to 'object'.
 
 #### Synopsis
 
@@ -241,6 +244,14 @@ Or new created table.
 
 Same as json.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as json array.
 
-## TBD
 
-* Should `json.object()` and `json.array()` just set metatable field `__jsontype` to `'object'` and `'array'` rather than replace metatable?
+## Changelog
+
+### 0.2.0[WIP]
+
+* `json.object()` and `json.array()` just set metatable field `__jsontype` to `'object'` and `'array'` it passed table already have a metatable.
+* fixes dump return value of `false` rather than `nil`.
+
+### 0.1.0
+
+* Initial release.

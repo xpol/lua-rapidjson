@@ -23,6 +23,7 @@ describe('json.object()', function()
     local r = json.object(t)
 
     assert.are.same(t, r)
-    assert.are_not.equal(oldmt, getmetatable(r)) -- but metatable replaced
+    assert.are.equal(oldmt, getmetatable(r)) -- metatable kept
+    assert.are.equal('object', oldmt.__jsontype)
   end)
 end)
