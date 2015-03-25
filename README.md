@@ -1,14 +1,16 @@
 # JSON for Lua
 
 [![License](http://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
-[![BuildStatus](https://travis-ci.org/xpol/json.png)][1]
-[1]:https://travis-ci.org/xpol/json
+[![TrivisStatus][]][Trivis] [![AppVeyorStatus][]][AppVeyor]
 
-A very fast json module for LuaJIT and Lua 5.1/5.2.
 
-Based on the very fast json library RapidJSON.
+A very fast json module for LuaJIT 2.0/2.1 and Lua 5.1/5.2/5.3.
 
-See project [homepage](https://github.com/xpol/json) for more informations,
+Based on the very fast json library [RapidJSON][].
+
+
+
+See project [homepage][] for more informations,
 bug report and feature request.
 
 ## Install
@@ -17,7 +19,7 @@ bug report and feature request.
 
 ## API
 
-### json.decode(jsonstring)
+### json.decode()
 
 Decode json to lua table.
 
@@ -47,7 +49,7 @@ Return nil plus an error message as a second result when passed string is not va
 - When passed value is not (convertable to) string.
 
 
-### json.encode(value [, option])
+### json.encode()
 
 Encode lua table to json string.
 
@@ -113,7 +115,7 @@ json.encode({a=ture, b=false}) --> '{"a":true,"b":false]'
 ```
 
 
-### json.load(filename)
+### json.load()
 
 Load json file into lua table.
 
@@ -144,7 +146,7 @@ Return nil plus an error message as a second result when passed file is not vali
 
 
 
-### json.dump(value, filename [, option])
+### json.dump()
 
 Dump lua value to json file.
 
@@ -255,3 +257,11 @@ Same as json.array() except the metatable field `__jsontype` is set as `'array'`
 ### 0.1.0
 
 * Initial release.
+
+
+[RapidJSON]: https://github.com/miloyip/rapidjson
+[homepage]: https://github.com/xpol/json
+[Trivis]:https://travis-ci.org/xpol/json "Travis page"
+[TrivisStatus]:https://travis-ci.org/xpol/json.png
+[AppVeyor]: https://ci.appveyor.com/project/xpol/json/branch/master "AppVeyor page"
+[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/c0t34e7590kbghti/branch/master?svg=true "AppVeyor build status"
