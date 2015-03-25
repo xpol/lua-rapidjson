@@ -7,7 +7,8 @@ env:
     - LUA=lua5.1
     - LUA=lua5.2
     - LUA=lua5.3
-    - LUA=luajit
+    - LUA=luajit2.0
+    - LUA=luajit2.1
 
 branches:
   only:
