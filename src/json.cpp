@@ -76,18 +76,25 @@ static int json_null(lua_State* L)
 
 static int json_object(lua_State* L)
 {
-	lua_createtable(L, 0, 1);
-	luaL_getmetatable(L, "json.object");
-	lua_setmetatable(L, -2);
+	if (lua_istable(L, 1))
+		lua_pushvalue(L, 1); // [table, table]
+	else
+		lua_createtable(L, 0, 0); // [table]
+
+	luaL_getmetatable(L, "json.object"); // [..., table, meta]
+	lua_setmetatable(L, -2); // [..., table]
 	return 1;
 
 }
 
 static int json_array(lua_State* L)
 {
-	lua_createtable(L, 0, 1);
-	luaL_getmetatable(L, "json.array");
-	lua_setmetatable(L, -2);
+	if (lua_istable(L, 1))
+		lua_pushvalue(L, 1); // [table, table]
+	else
+		lua_createtable(L, 0, 0); // [table]
+	luaL_getmetatable(L, "json.array"); // [..., table, meta]
+	lua_setmetatable(L, -2); // [..., table]
 	return 1;
 }
 
@@ -339,26 +346,32 @@ struct encode {
 	}
 
 
-	static bool emptyTableIsArray(lua_State* L, int idx)
+	static bool hasJsonType(lua_State* L, int idx, bool& isarray)
 	{
 		restore_stack keep(L);
 		lua_pushvalue(L, idx); // [value]
 
 		lua_getmetatable(L, -1); // [value, meta]
 		lua_getfield(L, -1, __JSONTYPE); // [value, meta, meta.__jsontype]
+		if (lua_isnoneornil(L, -1))
+			return false;
 		lua_pushvalue(L, -1);// [value, meta, meta.__jsontype, meta.__jsontype]
+
 		size_t len;
 		const char* s = lua_tolstring(L, -1, &len);
-		return (s != NULL && strncmp(s, "array", 6) == 0);
+		isarray = (s != NULL && strncmp(s, "array", 6) == 0);
+		return true;
 	}
 
 	static bool isArray(lua_State* L, int idx, const std::vector<Key>& keys)
 	{
-		if (keys.empty()) // can detect empty table by its keys
-			return emptyTableIsArray(L, idx);
-		if (lua_rawlen(L, -1) == keys.size()) // array
-			return true;
-		return false;
+		bool isarray = false;
+		if (hasJsonType(L, idx, isarray))
+			return isarray;
+		if (keys.empty()) // empty table without meta field are trade as object
+			return false;
+
+		return (lua_rawlen(L, -1) == keys.size()); // key number is same as # are trade as array
 	}
 
 

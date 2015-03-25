@@ -1,7 +1,7 @@
 # JSON for Lua
 
+[![License](http://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 [![BuildStatus](https://travis-ci.org/xpol/json.png)][1]
-
 [1]:https://travis-ci.org/xpol/json
 
 A very fast json module for LuaJIT and Lua 5.1/5.2.
@@ -21,13 +21,51 @@ bug report and feature request.
 
 Decode json to lua table.
 
+#### Synopsis
+
+```Lua
+value = json.encode(jsonstring)
+```
+
+#### Arguments
+
+**jsonstring**
+
+A json value string to be decoded.
+
+#### Returns
+
+Return table if json is an object or array.
+
+Return `true`, `false`, number and `json.null` respectively if json is a simple value.
+
+Return nil plus an error message as a second result when passed string is not valid json string.
+
+
+#### Errors
+
+- When passed value is not (convertable to) string.
+
+
 ### json.encode(value [, option])
+
+Encode lua table to json string.
+
+#### Synopsis
+
+```Lua
+string = json.encode(value [, option])
+```
+
+#### Arguments  
 
 **value**:
 
 When passed a table:
 
-1. Trade as array if table contains only integer keys from 1 to n or a empty table has metatable field `__jsontype` set to `array`.
+1. Trade as array if:
+    - metatable field `__jsontype` set to `array`.
+    - table contains only integer keys from 1 to n.
 2. Otherwise the table are trade as object and integer keys are converted to string.
 
 When passed with `true`, `false`, number and `json.null`, simply encode as simple json value.
@@ -38,6 +76,19 @@ A optional table contains follow field:
 
 * `pretty` boolean: true to make output string to be pretty formated.
 
+#### Returns
+
+Return encoded json string on success.
+Return nil on failure, plus an error message as a second result.
+
+
+
+#### Errors
+
+* When option passed a value other than table.
+
+
+#### Examples
 
 ```Lua
 local json = require('json')
@@ -61,23 +112,135 @@ json.encode({a=ture, b=false}) --> '{"a":true,"b":false]'
 
 ```
 
-Encode lua table to json string.
 
 ### json.load(filename)
 
 Load json file into lua table.
 
+#### Synopsis
+
+```Lua
+value = json.load(filename)
+```
+
+#### Arguments
+
+**filename**
+
+Json file to be loaded.
+
+#### Returns
+
+Return table if file contains an object or array.
+
+Return `true`, `false`, number and `json.null` respectively if file contains a simple value.
+
+Return nil plus an error message as a second result when passed file is not valid json file.
+
+
+#### Errors
+
+- When passed filename is not (convertable to) string.
+
+
 
 ### json.dump(value, filename [, option])
 
-Dump lua table to json file.
+Dump lua value to json file.
+
+#### Synopsis
+
+```Lua
+success, err = json.dump(value, filename [, option])
+```
+
+#### Arguments
+
+
+**value**
+
+Same as in `json.encode()`.
+
+**filename**
+
+The file path string where to save dumpped json.
+
+
+**option**:
+
+A optional table contains follow field:
+
+* `pretty` boolean: true to make output string to be pretty formated.
+
+#### Returns
+
+bool: success
+
+Return true on success.
+
+Return false plus an error message as a second result when:
+
+- Value can't be encoded.
+- `filename` can't be opened for write.
+
+#### Error
+
+* When passed filename is not (convertable to) string.
+* When passed option is not table, nil or none.
+
+
+#### Example
+
+```Lua
+local json = require('json')
+
+json.dump({json.null}, 'test.json')
+json.dump({json.null}, 'test-pretty.json', {pretty=true})
+
+```
 
 ### json.null
 
-The placeholder for json null values.
+The placeholder for null values in json.
+
+eg.
+
+```Lua
+local json = require('json')
+
+json.decode('[null]') --> {json.null}
+json.encode({json.null}) --> '[null]'
+
+```
 
 ### json.object()
 
-Create
+Create a new empty table that have metatable field `__jsontype` set as `'object'` so that the `encode` and `dump` function will encode it as json object.
+
+When passed an valid table, `json.object()` will just set above metatable for the table. (The old metatable is overwrote).
+
+#### Synopsis
+
+```Lua
+obj = json.object([t])
+```
+
+#### Arguments
+
+*t*
+
+Optinal table to be set the metatable with meta field `__jsontype` set as `'object'`.
+
+#### Returns
+
+Origin passed in table when passed with a table.
+Or new created table.
+
 
 ### json.array()
+
+Same as json.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as json array.
+
+## TBD
+
+* Should `json.object()` and `json.array()` just set metatable field `__jsontype` to `'object'` and `'array'` rather than replace metatable?
