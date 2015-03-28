@@ -17,6 +17,16 @@ bug report and feature request.
 
     luarocks install json
 
+## Test
+
+
+Clone or download source code, in the project root folder:
+
+    luarocks install dromozoa-utf8
+    luarocks install busted
+    luarocks make
+    busted
+
 ## API
 
 ### json.decode()
