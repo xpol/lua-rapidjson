@@ -26,7 +26,7 @@ describe('json.dump()', function()
     assert.are.same(check('rapidjson/bin/jsonchecker/pass3.json'))
   end)
 
-  it('should dump with pretty option = ture', function()
+  it('should dump with pretty option = true', function()
     local option = {pretty=true}
     local e, a = check('rapidjson/bin/jsonchecker/pass1.json', option)
     assert.are.same(string.format("%.10g", e[9]['E']), string.format("%.10g", a[9]['E']))

@@ -137,7 +137,7 @@ json.encode(123) --> '123.0' or '123' in Lua 5.3.
 
 json.encode({true, false}) --> '[true, false]'
 
-json.encode({a=ture, b=false}) --> '{"a":true,"b":false]'
+json.encode({a=true, b=false}) --> '{"a":true,"b":false]'
 
 ```
 
