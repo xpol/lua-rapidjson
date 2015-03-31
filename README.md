@@ -27,6 +27,13 @@ Clone or download source code, in the project root folder:
     luarocks make
     busted
 
+## Performance
+
+    lua performance/run.lua
+
+The CI will also run the performance test at the end of build.
+See build log [travis][Trivis] and [appveyor][AppVeyor] for details.
+
 ## API
 
 ### json.decode()
@@ -62,6 +69,16 @@ Return nil plus an error message as a second result when passed string is not va
 ### json.encode()
 
 Encode lua table to json string.
+
+supports the following types:
+
+* boolean
+* function (json.null only)
+* number
+* string
+* table
+
+The json object keys are sorted by the this function.
 
 #### Synopsis
 
@@ -271,7 +288,7 @@ Same as json.array() except the metatable field `__jsontype` is set as `'array'`
 
 [RapidJSON]: https://github.com/miloyip/rapidjson
 [homepage]: https://github.com/xpol/json
-[Trivis]:https://travis-ci.org/xpol/json "Travis page"
-[TrivisStatus]:https://travis-ci.org/xpol/json.png
+[Trivis]: https://travis-ci.org/xpol/json "Travis page"
+[TrivisStatus]: https://travis-ci.org/xpol/json.png
 [AppVeyor]: https://ci.appveyor.com/project/xpol/json/branch/master "AppVeyor page"
 [AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/c0t34e7590kbghti/branch/master?svg=true

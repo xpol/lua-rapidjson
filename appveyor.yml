@@ -58,6 +58,10 @@ before_test:
 # install test only deps
 - luarocks install busted
 - luarocks install dromozoa-utf8
+# performance test needs socket.gettime() and lua-cjson.
+- sudo luarocks install luasocket
+- sudo luarocks install https://raw.githubusercontent.com/xpol/lua-cjson/master/lua-cjson-2.1.1-1.rockspec
 
 test_script:
 - busted
+- %LUA% performance/run.lua
