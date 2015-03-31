@@ -64,4 +64,4 @@ before_test:
 
 test_script:
 - busted
-- %LUA% performance/run.lua
+- call %LUA% performance/run.lua
