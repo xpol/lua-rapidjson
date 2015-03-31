@@ -484,7 +484,7 @@ struct encode {
 	static bool encodeObject(lua_State* L, Writer* writer, std::vector<Key> &keys)
 	{
 		// [table]
-		//std::sort(keys.begin(), keys.end());
+		std::sort(keys.begin(), keys.end());
 
 		const std::vector<Key>& const_keys = keys;
 		writer->StartObject();
