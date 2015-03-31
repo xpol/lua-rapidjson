@@ -4,11 +4,11 @@ env:
   global:
     - LUAROCKS=2.2.0
   matrix:
-    - LUA=lua5.1
-    - LUA=lua5.2
-    - LUA=lua5.3
-    - LUA=luajit2.0
-    - LUA=luajit2.1
+    - LUA=lua5.1 LUAEXE=lua
+    - LUA=lua5.2 LUAEXE=lua
+    - LUA=lua5.3 LUAEXE=lua
+    - LUA=luajit2.0 LUAEXE=luajit
+    - LUA=luajit2.1 LUAEXE=luajit
 
 branches:
   only:
@@ -31,7 +31,7 @@ script:
   - busted
 
 after_success:
-  - $LUA performance/run.lua
+  - $LUAEXE performance/run.lua
 
 notifications:
   email:
