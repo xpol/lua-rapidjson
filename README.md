@@ -103,7 +103,8 @@ When passed with `true`, `false`, number and `json.null`, simply encode as simpl
 
 A optional table contains follow field:
 
-* `pretty` boolean: true to make output string to be pretty formated.
+* `pretty` boolean: Set `true` to make output string to be pretty formated. Default is false.
+* `sort_keys` boolean: Set `true` to make json object keys be sorted. Default is `false`.
 
 #### Returns
 
@@ -197,9 +198,7 @@ The file path string where to save dumpped json.
 
 **option**:
 
-A optional table contains follow field:
-
-* `pretty` boolean: true to make output string to be pretty formated.
+Same as in options in `json.encode()`.
 
 #### Returns
 

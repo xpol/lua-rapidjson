@@ -60,7 +60,7 @@ describe('json.encode()', function()
   it('should encode simple object', function()
     assert.are.same(
       '{"a":'..Int'1'..',"b":2.1,"c":"","d":false}',
-      json.encode({a=1, b=2.1, c='', d=false})
+      json.encode({a=1, b=2.1, c='', d=false}, {sort_keys=true})
     )
   end)
 
@@ -98,13 +98,33 @@ describe('json.encode()', function()
                 1.1,
                 2.2,
                 3.3
-            ],
-            "c": {}
+            ]
         },
         {}
     ]
 }]],
-      json.encode({a={{b={1.1,2.2,3.3}, c={}}, {}}}, {pretty=true})
+      json.encode({a={{b={1.1,2.2,3.3}}, {}}}, {pretty=true})
+    )
+  end)
+
+  it('should support sort_keys options', function()
+    assert.are.same(
+      '{"A":true,"B":true,"Z":true,"a":true,"b":true,"z":true}',
+      json.encode({Z=true, a=true,z=true,b=true, A=true, B=true}, {sort_keys=true})
+    )
+  end)
+
+  it('should support sort_keys and pretty options', function()
+
+    assert.are.equal(
+[[{
+    "A": true,
+    "B": true,
+    "Z": true,
+    "a": true,
+    "b": true,
+    "z": true
+}]], json.encode({Z=true, a=true,z=true,b=true, A=true, B=true}, {sort_keys=true,pretty=true})
     )
   end)
 
@@ -121,7 +141,7 @@ describe('json.encode()', function()
         ["zh-Hans"] = "我能吞下玻璃而不伤身体。",
         ["ja"] = "私はガラスを食べられます。それは私を傷つけません。",
         ["ko"] = "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요"
-      })
+      }, {sort_keys=true})
     )
   end)
 end)

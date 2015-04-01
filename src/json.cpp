@@ -334,26 +334,33 @@ struct Key
 
 
 
-struct encode {
-	struct option {
-		option(lua_State*L, int idx) : pretty(false)
-		{
-			if (lua_isnoneornil(L, idx))
-				return;
-			luaL_checktype(L, idx, LUA_TTABLE);
+class Encoder {
+public:
+	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false)
+	{
+		if (lua_isnoneornil(L, opt))
+			return;
+		luaL_checktype(L, opt, LUA_TTABLE);
 
-			lua_pushvalue(L, idx); // [opttable]
-			lua_getfield(L, idx, "pretty");  // [opttable, pretty]
-			if (lua_isnoneornil(L, -1))
-				return;
-			if (!lua_isboolean(L, -1))
-				return;
-			pretty = lua_toboolean(L, -1) != 0;
-			lua_pop(L, 2); // []
-		}
-		bool pretty;
-	};
+		lua_pushvalue(L, opt); // [table]
+		booleanField(L, "pretty", &pretty);
+		booleanField(L, "sort_keys", &sort_keys);
+	}
 
+private:
+	void booleanField(lua_State* L, const char* name,bool* value)
+	{
+		restore_stack save(L);
+		lua_getfield(L, -1, name);  // [field]
+		if (lua_isnoneornil(L, -1))
+			return;
+		if (!lua_isboolean(L, -1))
+			return;
+		*value = lua_toboolean(L, -1) != 0;
+	}
+
+	bool pretty;
+	bool sort_keys;
 
 	static bool isJsonNull(lua_State* L, int idx)
 	{
@@ -395,20 +402,30 @@ struct encode {
 		return true;
 	}
 
+	static bool isArray(lua_State* L, int idx)
+	{
+		bool isarray = false;
+		if (hasJsonType(L, idx, isarray))
+			return isarray;
+
+		return (lua_rawlen(L, idx) != 0);
+	}
+
 	static bool isArray(lua_State* L, int idx, const std::vector<Key>& keys)
 	{
 		bool isarray = false;
 		if (hasJsonType(L, idx, isarray))
 			return isarray;
+
 		if (keys.empty()) // empty table without meta field are trade as object
 			return false;
 
-		return (lua_rawlen(L, -1) == keys.size()); // key number is same as # are trade as array
+		return (lua_rawlen(L, idx) == keys.size()); // key number is same as # are trade as array
 	}
 
 
 	template<typename Writer>
-	static bool encodeValue(lua_State* L, Writer* writer, int idx)
+	bool encodeValue(lua_State* L, Writer* writer, int idx)
 	{
 		restore_stack keep(L);
 
@@ -453,10 +470,15 @@ struct encode {
 	}
 
 	template<typename Writer>
-	static bool encodeTable(lua_State* L, Writer* writer, int idx)
+	bool encodeTable(lua_State* L, Writer* writer, int idx)
 	{
 		restore_stack restore(L);
 		lua_pushvalue(L, idx); // [table]
+
+		if (!sort_keys)
+			return isArray(L, -1) ?
+				encodeArray(L, writer) :
+				encodeObject(L, writer);
 
 		lua_pushnil(L); // [table, nil]
 		std::vector<Key> keys;
@@ -481,13 +503,42 @@ struct encode {
 	}
 
 	template<typename Writer>
-	static bool encodeObject(lua_State* L, Writer* writer, std::vector<Key> &keys)
+	bool encodeObject(lua_State* L, Writer* writer)
+	{
+		writer->StartObject();
+
+		// [table]
+		lua_pushnil(L); // [table, nil]
+		while (lua_next(L, -2))
+		{
+			// [table, key, value]
+			lua_pushvalue(L, -2);
+			// [table, key, value, key]
+
+			size_t len = 0;
+			const char *key = lua_tolstring(L, -1, &len);
+			writer->Key(key, len);
+			bool ok = encodeValue(L, writer, -2);
+			// pop value + copy of key, leaving original key
+			lua_pop(L, 2);
+			// [table, key]
+			if (!ok)
+				return false;
+		}
+		// [table]
+		writer->EndObject();
+		return true;
+	}
+
+	template<typename Writer>
+	bool encodeObject(lua_State* L, Writer* writer, std::vector<Key> &keys)
 	{
 		// [table]
+		writer->StartObject();
+
 		std::sort(keys.begin(), keys.end());
 
 		const std::vector<Key>& const_keys = keys;
-		writer->StartObject();
 		std::vector<Key>::const_iterator i = const_keys.begin();
 		std::vector<Key>::const_iterator e = const_keys.end();
 		for (; i != e; ++i)
@@ -500,12 +551,13 @@ struct encode {
 			if (!ok)
 				return false;
 		}
+		// [table]
 		writer->EndObject();
 		return true;
 	}
 
 	template<typename Writer>
-	static bool encodeArray(lua_State* L, Writer* writer)
+	bool encodeArray(lua_State* L, Writer* writer)
 	{
 		// [table]
 		writer->StartArray();
@@ -521,10 +573,12 @@ struct encode {
 		writer->EndArray();
 		return true;
 	}
+
+public:
 	template<typename Stream>
-	static bool encodeWithOption(lua_State* L, Stream* s, int idx, const option& opt)
+	bool encode(lua_State* L, Stream* s, int idx)
 	{
-		if (opt.pretty)
+		if (pretty)
 		{
 			PrettyWriter<Stream> writer(*s);
 			return encodeValue(L, &writer, idx);
@@ -540,11 +594,11 @@ struct encode {
 
 static int json_encode(lua_State* L)
 {
-	encode::option opt(L, 2);
+	Encoder encode(L, 2);
 
 	StringBuffer s;
 
-	if (!encode::encodeWithOption(L, &s, 1, opt))
+	if (!encode.encode(L, &s, 1))
 	{
 		lua_pushnil(L);
 		lua_pushliteral(L, "can't encode to json.");
@@ -557,7 +611,7 @@ static int json_encode(lua_State* L)
 
 static int json_dump(lua_State* L)
 {
-	encode::option opt(L, 3);
+	Encoder encoder(L, 3);
 
 	FILE* fp = openForWrite(luaL_checkstring(L, 2));
 
@@ -571,7 +625,7 @@ static int json_dump(lua_State* L)
 	static const size_t sz = 16 * 1024;
 	std::vector<char> buffer(sz);
 	FileWriteStream fs(fp, &buffer.front(), sz);
-	bool ok = encode::encodeWithOption(L, &fs, 1, opt);
+	bool ok = encoder.encode(L, &fs, 1);
 	fclose(fp);
 	lua_pushboolean(L, ok);
 	if (ok)

@@ -90,7 +90,7 @@ describe('json.dump()', function()
     	["zh-Hans"] = "我能吞下玻璃而不伤身体。",
     	["ja"] = "私はガラスを食べられます。それは私を傷つけません。",
     	["ko"] = "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요"
-    }, "dump.json"))
+    }, "dump.json", {sort_keys=true}))
 
     assert.are.equal(
       [[{"en":"I can eat glass and it doesn't hurt me.",]]..
@@ -100,6 +100,40 @@ describe('json.dump()', function()
       [["zh-Hant":"我能吞下玻璃而不傷身體。"}]],
       get_file_content("dump.json")
     )
-
   end)
+
+  it('should support pretty options', function()
+    json.dump({a=true}, "dump.json",{pretty=true})
+    assert.are.equal(
+[[{
+    "a": true
+}]],
+        get_file_content("dump.json")
+      )
+  end)
+
+  it('should support sort_keys options', function()
+    json.dump({Z=true, a=true,z=true,b=true, A=true, B=true}, "dump.json",{sort_keys=true})
+    assert.are.equal(
+      '{"A":true,"B":true,"Z":true,"a":true,"b":true,"z":true}',
+      get_file_content("dump.json")
+    )
+  end)
+
+
+  it('should support sort_keys and pretty options', function()
+    json.dump({Z=true, a=true,z=true,b=true, A=true, B=true}, "dump.json",{sort_keys=true,pretty=true})
+    assert.are.equal(
+[[{
+    "A": true,
+    "B": true,
+    "Z": true,
+    "a": true,
+    "b": true,
+    "z": true
+}]],
+      get_file_content("dump.json")
+    )
+  end)
+
 end)
