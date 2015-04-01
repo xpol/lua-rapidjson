@@ -1,8 +1,10 @@
 local json = require('json')
 local cjson = require('cjson')
+local dkjson = require('dkjson')
+
 local socket = require('socket')
 
-local function time(title, f, times)
+local function time(f, times)
   collectgarbage()
 
   local start = socket.gettime()
@@ -12,7 +14,7 @@ local function time(title, f, times)
 
   local stop = socket.gettime()
 
-  print( '',title, stop - start )
+  return stop - start
 end
 
 
@@ -26,15 +28,35 @@ end
 
 local function profile(jsonfile, times)
   print(jsonfile..': (x'..times..')')
+  print('', 'module', '  decoding', '  encoding')
   local d = readfile(jsonfile)
-  time("json.decode()", function() json.decode(d) end, times)
-  time("cjson.decode()", function() cjson.decode(d) end, times)
-  local t = json.decode(d)
-  time("json.encode()", function() json.encode(t) end, times)
-  t = cjson.decode(d)
-  time("cjson.encode()", function() cjson.encode(t) end, times)
+
+  local modules = {
+    dkjson = {dkjson.decode, dkjson.encode},
+    json = {json.decode, json.encode},
+    cjson = {cjson.decode, cjson.encode},
+  }
+
+  for name, functions in pairs(modules) do
+    local dec, enc = unpack(functions)
+    local td = time(function() dec(d) end, times)
+    local t = dec(d)
+    local te = time(function() enc(t) end, times)
+    --print('', name, td, te)
+    print(string.format('\t%6s\t% 13.10f\t% 13.10f', name, td, te))
+  end
 end
 
-profile('rapidjson/bin/data/sample.json', 1000)
-profile('rapidjson/bin/data/webapp.json', 100000)
+local function main()
+  profile('rapidjson/bin/data/menu.json', 100000)
+  profile('rapidjson/bin/data/webapp.json', 50000)
+  profile('rapidjson/bin/data/sample.json', 1000)
+end
+
+local r, m = pcall(main)
+
+if not r then
+  print(m)
+end
+
 return 0

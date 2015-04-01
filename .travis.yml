@@ -20,9 +20,11 @@ before_install:
   # Install testing dependency
   - sudo luarocks install busted
   - sudo luarocks install dromozoa-utf8
-  - sudo luarocks install luasocket # performance test needs socket.gettime()
-  - sudo luarocks install lua-cjson # performance test needs compare with cjson
-
+  # Performance test needs socket.gettime(), lua-cjson dkjson lpeg.
+  - sudo luarocks install luasocket
+  - sudo luarocks install lua-cjson
+  - sudo luarocks install lpeg
+  - sudo luarocks install dkjson
 install:
   - sudo luarocks make
 
