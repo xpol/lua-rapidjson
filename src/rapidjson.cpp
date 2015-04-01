@@ -19,6 +19,10 @@
 
 using namespace rapidjson;
 
+#ifndef LUA_RAPIDJSON_VERSION
+#define LUA_RAPIDJSON_VERSION "scm"
+#endif
+
 static const char* JSON_TABLE_TYPE_FIELD = "__jsontype";
 enum json_table_type {
 	JSON_TABLE_TYPE_OBJECT = 0,
@@ -657,12 +661,18 @@ extern "C" {
 
 LUALIB_API int luaopen_rapidjson(lua_State* L)
 {
-	lua_newtable(L); // [json]
+	lua_newtable(L); // [rapidjson]
 
-	setfuncs(L, methods); // [json]
+	setfuncs(L, methods); // [rapidjson]
 
-	lua_getfield(L, -1, "null"); // [json, json.null]
-	null = luaL_ref(L, LUA_REGISTRYINDEX); // [json]
+	lua_pushliteral(L, "rapidjson"); // [rapidjson, name]
+	lua_setfield(L, -2, "_NAME"); // [rapidjson]
+
+	lua_pushliteral(L, LUA_RAPIDJSON_VERSION); // [rapidjson, version]
+	lua_setfield(L, -2, "_VERSION"); // [rapidjson]
+
+	lua_getfield(L, -1, "null"); // [rapidjson, json.null]
+	null = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
 
 	createSharedMeta(L, JSON_TABLE_TYPE_OBJECT);
 	createSharedMeta(L, JSON_TABLE_TYPE_ARRAY);

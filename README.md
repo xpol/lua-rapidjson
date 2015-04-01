@@ -282,15 +282,23 @@ Or new created table.
 
 Same as rapidjson.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as json array.
 
+### rapidjson.\_NAME
+
+A string that is `"rapidjson"`.
+
+### rapidjson.\_VERSION
+
+The current loaded rapidjson version. `"scm"` when not configured.
 
 ## Changelog
 
 ### 0.2.0
 
+* Rename module to `rapidjson`.
 * Added `option.sort_keys` option to `rapidjson.encode()` and `rapidjson.dump()`, and default value for `sort_keys` is `false`.
+* Added `rapidjson._NAME` (`"rapidjson"`) and `rapidjson._VERSION`.
 * `rapidjson.object()` and `rapidjson.array()` just set metatable field `__jsontype` to `'object'` and `'array'` it passed table already have a metatable.
 * fixes dump return value of `false` rather than `nil`.
-* Rename module to `rapidjson`.
 
 ### 0.1.0
 
