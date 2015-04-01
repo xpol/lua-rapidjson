@@ -4,11 +4,11 @@ env:
   global:
     - LUAROCKS=2.2.0
   matrix:
-    - LUA=lua5.1 LUAEXE=lua
-    - LUA=lua5.2 LUAEXE=lua
-    - LUA=lua5.3 LUAEXE=lua
-    - LUA=luajit2.0 LUAEXE=luajit
-    - LUA=luajit2.1 LUAEXE=luajit
+    - LUA=lua5.1
+    - LUA=lua5.2
+    - LUA=lua5.3
+    - LUA=luajit2.0
+    - LUA=luajit2.1
 
 branches:
   only:
@@ -20,20 +20,13 @@ before_install:
   # Install testing dependency
   - sudo luarocks install busted
   - sudo luarocks install dromozoa-utf8
-  # Performance test needs socket.gettime(), lua-cjson dkjson lpeg.
-  - sudo luarocks install luasocket
-  - sudo luarocks install lua-cjson
-  - sudo luarocks install lpeg
-  - sudo luarocks install dkjson
+
 install:
   - sudo luarocks make
 
 # Run tests
 script:
   - busted
-
-after_success:
-  - $LUAEXE performance/run.lua
 
 notifications:
   email:

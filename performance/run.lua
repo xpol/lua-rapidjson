@@ -12,7 +12,6 @@ local function time(f, times)
   end
 
   local start = gettime()
-  times = times or 1000
 
   for _=0,times do f() end
 
@@ -32,6 +31,8 @@ end
 
 
 local function profile(jsonfile, times)
+  times = times or 10000
+
   print(jsonfile..': (x'..times..')')
   print('', 'module', '  decoding', '  encoding')
   local d = readfile(jsonfile)
@@ -56,13 +57,13 @@ local function profile(jsonfile, times)
 end
 
 local function main()
-  profile('performance/nulls.json', 1000)
-  profile('performance/booleans.json', 1000)
-  profile('performance/guids.json', 1000)
-  profile('performance/paragraphs.json', 1000)
-  profile('performance/floats.json', 1000)
-  profile('performance/integers.json', 1000)
-  profile('performance/mixed.json', 1000)
+  profile('performance/nulls.json')
+  profile('performance/booleans.json')
+  profile('performance/guids.json')
+  profile('performance/paragraphs.json')
+  profile('performance/floats.json')
+  profile('performance/integers.json')
+  profile('performance/mixed.json')
 end
 
 local r, m = pcall(main)
