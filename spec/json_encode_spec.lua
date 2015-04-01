@@ -67,7 +67,7 @@ describe('json.encode()', function()
   it('should encode nested objects', function()
     assert.are.same(
       '{"a":[{"b":[1.1,2.2,3.3],"c":{}},{}]}',
-      json.encode({a={{b={1.1,2.2,3.3}, c={}}, {}}})
+      json.encode({a={{b={1.1,2.2,3.3}, c={}}, {}}}, {sort_keys=true})
     )
   end)
 
