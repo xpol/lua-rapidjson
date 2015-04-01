@@ -37,14 +37,14 @@ local function profile(jsonfile, times)
   print('', 'module', '  decoding', '  encoding')
   local d = readfile(jsonfile)
 
-  local json = require('json')
+  local rapidjson = require('rapidjson')
   local cjson = require('cjson')
   local dkjson = require('dkjson')
 
   local modules = {
     {'dkjson', dkjson.decode, dkjson.encode},
     {'cjson', cjson.decode, cjson.encode},
-    {'json', json.decode, json.encode},
+    {'rapidjson', rapidjson.decode, rapidjson.encode},
   }
 
   for _, m in ipairs(modules) do

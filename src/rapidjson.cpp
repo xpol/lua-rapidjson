@@ -655,7 +655,7 @@ static const luaL_Reg methods[] = {
 
 extern "C" {
 
-LUALIB_API int luaopen_json(lua_State* L)
+LUALIB_API int luaopen_rapidjson(lua_State* L)
 {
 	lua_newtable(L); // [json]
 

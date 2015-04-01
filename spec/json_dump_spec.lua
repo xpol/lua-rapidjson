@@ -1,11 +1,11 @@
 --luacheck: ignore describe it setup teardown
-describe('json.dump()', function()
-  local json = require('json')
+describe('rapidjson.dump()', function()
+  local rapidjson = require('rapidjson')
   local function check(filename, ...)
-    local e = json.load(filename)
+    local e = rapidjson.load(filename)
     local df = 'dump.json'
-    json.dump(e, df, ...)
-    local a = json.load(df)
+    rapidjson.dump(e, df, ...)
+    local a = rapidjson.load(df)
     --os.remove(df)
     return e, a
   end
@@ -63,13 +63,13 @@ describe('json.dump()', function()
 
   it('should not dump with option other than table or nil', function()
     assert.has.errors(function()
-      assert(json.dump({}, "dump.json", 1))
+      assert(rapidjson.dump({}, "dump.json", 1))
     end, [[bad argument #3 to 'dump' (table expected, got number)]])
   end)
 
   it('should raise error when filename is not string', function()
     assert.has.errors(function()
-      assert(json.dump({}, nil, {}))
+      assert(rapidjson.dump({}, nil, {}))
     end, [[bad argument #2 to 'dump' (string expected, got nil)]])
   end)
 
@@ -84,7 +84,7 @@ describe('json.dump()', function()
   end
 
   it('should handle utf-8 string', function()
-    assert(json.dump({
+    assert(rapidjson.dump({
     	["en"] = "I can eat glass and it doesn't hurt me.",
     	["zh-Hant"] = "我能吞下玻璃而不傷身體。",
     	["zh-Hans"] = "我能吞下玻璃而不伤身体。",
@@ -103,7 +103,7 @@ describe('json.dump()', function()
   end)
 
   it('should support pretty options', function()
-    json.dump({a=true}, "dump.json",{pretty=true})
+    rapidjson.dump({a=true}, "dump.json",{pretty=true})
     assert.are.equal(
 [[{
     "a": true
@@ -113,7 +113,7 @@ describe('json.dump()', function()
   end)
 
   it('should support sort_keys options', function()
-    json.dump({Z=true, a=true,z=true,b=true, A=true, B=true}, "dump.json",{sort_keys=true})
+    rapidjson.dump({Z=true, a=true,z=true,b=true, A=true, B=true}, "dump.json",{sort_keys=true})
     assert.are.equal(
       '{"A":true,"B":true,"Z":true,"a":true,"b":true,"z":true}',
       get_file_content("dump.json")
@@ -122,7 +122,7 @@ describe('json.dump()', function()
 
 
   it('should support sort_keys and pretty options', function()
-    json.dump({Z=true, a=true,z=true,b=true, A=true, B=true}, "dump.json",{sort_keys=true,pretty=true})
+    rapidjson.dump({Z=true, a=true,z=true,b=true, A=true, B=true}, "dump.json",{sort_keys=true,pretty=true})
     assert.are.equal(
 [[{
     "A": true,

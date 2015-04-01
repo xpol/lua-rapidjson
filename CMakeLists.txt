@@ -35,7 +35,7 @@ endif()
 
 include_directories(${LUA_INCLUDE_DIR} rapidjson/include)
 
-add_library (json MODULE src/json.cpp)
+add_library (json MODULE src/rapidjson.cpp)
 
 if (LUA_LIBRARIES)
     message("Using LUALIB:${LUA_LIBRARIES}")
@@ -49,7 +49,7 @@ if (LINK_FLAGS)
 endif()
 
 set_target_properties(json PROPERTIES
-    OUTPUT_NAME "json"
+    OUTPUT_NAME "rapidjson"
     PREFIX ""
 )
 

@@ -6,16 +6,26 @@
 
 A very fast json module for LuaJIT 2.0/2.1 and Lua 5.1/5.2/5.3.
 
-Based on the very fast json library [RapidJSON][].
+Based on the very fast [RapidJSON][] C++ library.
 
 
 
 See project [homepage][] for more informations,
 bug report and feature request.
 
-## Install
+## Usage
 
-    luarocks install json
+    luarocks install rapidjson
+
+```Lua
+local rapidjson = require('rapidjson')
+
+rapidjson.encode()
+rapidjson.decode()
+
+rapidjson.load()
+rapidjson.dump()
+```
 
 ## Test
 
@@ -29,21 +39,21 @@ Clone or download source code, in the project root folder:
 
 ## Performance
 
+To compare speed of rapidjson and other json libraries:
+
     lua performance/run.lua
 
-The CI will also run the performance test at the end of build.
-See build log [travis][Trivis] and [appveyor][AppVeyor] for details.
 
 ## API
 
-### json.decode()
+### rapidjson.decode()
 
 Decode json to lua table.
 
 #### Synopsis
 
 ```Lua
-value = json.encode(jsonstring)
+value = rapidjson.encode(jsonstring)
 ```
 
 #### Arguments
@@ -56,7 +66,7 @@ A json value string to be decoded.
 
 Return table if json is an object or array.
 
-Return `true`, `false`, number and `json.null` respectively if json is a simple value.
+Return `true`, `false`, number and `rapidjson.null` respectively if json is a simple value.
 
 Return nil plus an error message as a second result when passed string is not valid json string.
 
@@ -66,14 +76,14 @@ Return nil plus an error message as a second result when passed string is not va
 - When passed value is not (convertable to) string.
 
 
-### json.encode()
+### rapidjson.encode()
 
 Encode lua table to json string.
 
 supports the following types:
 
 * boolean
-* function (json.null only)
+* function (rapidjson.null only)
 * number
 * string
 * table
@@ -83,7 +93,7 @@ The json object keys are sorted by the this function.
 #### Synopsis
 
 ```Lua
-string = json.encode(value [, option])
+string = rapidjson.encode(value [, option])
 ```
 
 #### Arguments  
@@ -97,7 +107,7 @@ When passed a table:
     - table contains only integer keys from 1 to n.
 2. Otherwise the table are trade as object and integer keys are converted to string.
 
-When passed with `true`, `false`, number and `json.null`, simply encode as simple json value.
+When passed with `true`, `false`, number and `rapidjson.null`, simply encode as simple json value.
 
 **option**:
 
@@ -121,36 +131,36 @@ Return nil on failure, plus an error message as a second result.
 #### Examples
 
 ```Lua
-local json = require('json')
+local json = require('rapidjson')
 
-json.encode({})     -- '{}'
+rapidjson.encode({})     -- '{}'
 
-json.encode(json.object()) --> '{}'
-json.encode(json.array()) --> '[]'
+rapidjson.encode(rapidjson.object()) --> '{}'
+rapidjson.encode(rapidjson.array()) --> '[]'
 
-json.encode(setmetatable({}, {__jsontype='object'})) --> '{}'
-json.encode(setmetatable({}, {__jsontype='array'})) --> '[]'
+rapidjson.encode(setmetatable({}, {__jsontype='object'})) --> '{}'
+rapidjson.encode(setmetatable({}, {__jsontype='array'})) --> '[]'
 
-json.encode(true) --> 'true'
-json.encode(json.null) --> 'null'
-json.encode(123) --> '123.0' or '123' in Lua 5.3.
+rapidjson.encode(true) --> 'true'
+rapidjson.encode(rapidjson.null) --> 'null'
+rapidjson.encode(123) --> '123.0' or '123' in Lua 5.3.
 
 
-json.encode({true, false}) --> '[true, false]'
+rapidjson.encode({true, false}) --> '[true, false]'
 
-json.encode({a=true, b=false}) --> '{"a":true,"b":false]'
+rapidjson.encode({a=true, b=false}) --> '{"a":true,"b":false]'
 
 ```
 
 
-### json.load()
+### rapidjson.load()
 
 Load json file into lua table.
 
 #### Synopsis
 
 ```Lua
-value = json.load(filename)
+value = rapidjson.load(filename)
 ```
 
 #### Arguments
@@ -163,7 +173,7 @@ Json file to be loaded.
 
 Return table if file contains an object or array.
 
-Return `true`, `false`, number and `json.null` respectively if file contains a simple value.
+Return `true`, `false`, number and `rapidjson.null` respectively if file contains a simple value.
 
 Return nil plus an error message as a second result when passed file is not valid json file.
 
@@ -174,14 +184,14 @@ Return nil plus an error message as a second result when passed file is not vali
 
 
 
-### json.dump()
+### rapidjson.dump()
 
 Dump lua value to json file.
 
 #### Synopsis
 
 ```Lua
-success, err = json.dump(value, filename [, option])
+success, err = rapidjson.dump(value, filename [, option])
 ```
 
 #### Arguments
@@ -189,16 +199,16 @@ success, err = json.dump(value, filename [, option])
 
 **value**
 
-Same as in `json.encode()`.
+Same as in `rapidjson.encode()`.
 
 **filename**
 
-The file path string where to save dumpped json.
+The file path string where to save dumpped rapidjson.
 
 
 **option**:
 
-Same as in options in `json.encode()`.
+Same as in options in `rapidjson.encode()`.
 
 #### Returns
 
@@ -222,26 +232,26 @@ Return false plus an error message as a second result when:
 ```Lua
 local json = require('json')
 
-json.dump({json.null}, 'test.json')
-json.dump({json.null}, 'test-pretty.json', {pretty=true})
+rapidjson.dump({rapidjson.null}, 'test.json')
+rapidjson.dump({rapidjson.null}, 'test-pretty.json', {pretty=true})
 
 ```
 
-### json.null
+### rapidjson.null
 
-The placeholder for null values in json.
+The placeholder for null values in rapidjson.
 
 eg.
 
 ```Lua
 local json = require('json')
 
-json.decode('[null]') --> {json.null}
-json.encode({json.null}) --> '[null]'
+rapidjson.decode('[null]') --> {rapidjson.null}
+rapidjson.encode({rapidjson.null}) --> '[null]'
 
 ```
 
-### json.object()
+### rapidjson.object()
 
 Create a new empty table that have metatable field `__jsontype` set as `'object'` so that the `encode` and `dump` function will encode it as json object.
 
@@ -253,7 +263,7 @@ When passed an valid table:
 #### Synopsis
 
 ```Lua
-obj = json.object([t])
+obj = rapidjson.object([t])
 ```
 
 #### Arguments
@@ -268,18 +278,19 @@ Origin passed in table when passed with a table.
 Or new created table.
 
 
-### json.array()
+### rapidjson.array()
 
-Same as json.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as json array.
+Same as rapidjson.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as json array.
 
 
 ## Changelog
 
-### 0.2.0[WIP]
+### 0.2.0
 
-* Added `option.sort_keys` option to `json.encode()` and `json.dump()`, and default value for `sort_keys` is `false`.
-* `json.object()` and `json.array()` just set metatable field `__jsontype` to `'object'` and `'array'` it passed table already have a metatable.
+* Added `option.sort_keys` option to `rapidjson.encode()` and `rapidjson.dump()`, and default value for `sort_keys` is `false`.
+* `rapidjson.object()` and `rapidjson.array()` just set metatable field `__jsontype` to `'object'` and `'array'` it passed table already have a metatable.
 * fixes dump return value of `false` rather than `nil`.
+* Rename module to `rapidjson`.
 
 ### 0.1.0
 
@@ -287,8 +298,8 @@ Same as json.array() except the metatable field `__jsontype` is set as `'array'`
 
 
 [RapidJSON]: https://github.com/miloyip/rapidjson
-[homepage]: https://github.com/xpol/json
-[Trivis]: https://travis-ci.org/xpol/json "Travis page"
-[TrivisStatus]: https://travis-ci.org/xpol/json.png
-[AppVeyor]: https://ci.appveyor.com/project/xpol/json/branch/master "AppVeyor page"
-[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/c0t34e7590kbghti/branch/master?svg=true
+[homepage]: https://github.com/xpol/rapidjson
+[Trivis]: https://travis-ci.org/xpol/rapidjson "Travis page"
+[TrivisStatus]: https://travis-ci.org/xpol/rapidjson.png
+[AppVeyor]: https://ci.appveyor.com/project/xpol/rapidjson/branch/master "AppVeyor page"
+[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/qrihavtrvqnv00bu/branch/master?svg=true

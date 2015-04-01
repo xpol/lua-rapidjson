@@ -1,15 +1,15 @@
 --luacheck: ignore describe it
-describe('json.array()', function()
-  local json = require('json')
+describe('rapidjson.array()', function()
+  local rapidjson = require('rapidjson')
   it('should create a new empty table if call without args', function()
-    local t = json.array()
+    local t = rapidjson.array()
     assert.are.same({}, t) -- empty
     local tm = getmetatable(t)
     assert.are_not.equal(nil, tm)
     assert.are.equal('array', tm.__jsontype)
 
     -- called another time, will return a new table
-    local u = json.array()
+    local u = rapidjson.array()
     assert.are_not.equal(t, u)
     assert.are.same({}, t)
     local um = getmetatable(u)
@@ -20,7 +20,7 @@ describe('json.array()', function()
     local oldmt = {}
     local t = {my=true}
     setmetatable(t, oldmt)
-    local r = json.array(t)
+    local r = rapidjson.array(t)
 
     assert.are.same(t, r)
     assert.are.equal(oldmt, getmetatable(r)) -- metatable kept

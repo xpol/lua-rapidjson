@@ -1,8 +1,7 @@
-package = "json"
-version = "0.1.0-1"
+package = "rapidjson"
+version = "0.2.0-1"
 source = {
-  url = 'git://github.com/xpol/json',
-  tag = 'v0.1.0',
+  url = 'https://github.com/xpol/rapidjson/archive/v0.2.0.tar.gz',
 }
 
 description = {
@@ -14,12 +13,12 @@ description = {
 
         Provided API:
 
-        - `json.decode()` decode json to lua table.
-        - `json.encode()` encode lua table to json string.
-        - `json.load()` load json file into lua table.
-        - `json.dump()` dump lua table to json file.
+        - `rapidjson.decode()` decode json to lua table.
+        - `rapidjson.encode()` encode lua table to json string.
+        - `rapidjson.load()` load json file into lua table.
+        - `rapidjson.dump()` dump lua table to json file.
   ]],
-  homepage = "https://github.com/xpol/json",
+  homepage = "https://github.com/xpol/rapidjson",
   license = "MIT"
 }
 
