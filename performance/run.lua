@@ -1,18 +1,22 @@
-local json = require('json')
-local cjson = require('cjson')
-local dkjson = require('dkjson')
 
-local socket = require('socket')
+
+
 
 local function time(f, times)
   collectgarbage()
+  local gettime = os.clock
 
-  local start = socket.gettime()
+  local ok, socket = pcall(require, 'socket')
+  if ok then
+    gettime = socket.gettime
+  end
+
+  local start = gettime()
   times = times or 1000
 
   for _=0,times do f() end
 
-  local stop = socket.gettime()
+  local stop = gettime()
 
   return stop - start
 end
@@ -26,10 +30,15 @@ local function readfile(file)
   return d
 end
 
+
 local function profile(jsonfile, times)
   print(jsonfile..': (x'..times..')')
   print('', 'module', '  decoding', '  encoding')
   local d = readfile(jsonfile)
+
+  local json = require('json')
+  local cjson = require('cjson')
+  local dkjson = require('dkjson')
 
   local modules = {
     dkjson = {dkjson.decode, dkjson.encode},
@@ -38,19 +47,22 @@ local function profile(jsonfile, times)
   }
 
   for name, functions in pairs(modules) do
-    local dec, enc = unpack(functions)
+    local dec, enc = functions[1], functions[2]
     local td = time(function() dec(d) end, times)
     local t = dec(d)
     local te = time(function() enc(t) end, times)
-    --print('', name, td, te)
     print(string.format('\t%6s\t% 13.10f\t% 13.10f', name, td, te))
   end
 end
 
 local function main()
-  profile('rapidjson/bin/data/menu.json', 100000)
-  profile('rapidjson/bin/data/webapp.json', 50000)
-  profile('rapidjson/bin/data/sample.json', 1000)
+  profile('performance/nulls.json', 10000)
+  profile('performance/booleans.json', 10000)
+  profile('performance/guids.json', 10000)
+  profile('performance/paragraphs.json', 10000)
+  profile('performance/floats.json', 10000)
+  profile('performance/integers.json', 10000)
+  profile('performance/mixed.json', 10000)
 end
 
 local r, m = pcall(main)

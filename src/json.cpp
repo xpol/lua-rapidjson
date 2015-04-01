@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <lua.hpp>
+#include "lua.hpp"
 
 #include "rapidjson/document.h"
 #include "rapidjson/encodedstream.h"
@@ -323,12 +323,12 @@ private:
 
 struct Key
 {
-	Key(const char* k, size_t l) : key(k), size(l) {}
+	Key(const char* k, SizeType l) : key(k), size(l) {}
 	bool operator<(const Key& rhs) const {
 		return strcmp(key, rhs.key) < 0;
 	}
 	const char* key;
-	size_t size;
+	SizeType size;
 };
 
 
@@ -445,7 +445,7 @@ private:
 			return true;
 		case LUA_TSTRING:
 			s = lua_tolstring(L, -1, &len);
-			writer->String(s, len);
+			writer->String(s, static_cast<SizeType>(len));
 			return true;
 		case LUA_TTABLE:
 			return encodeTable(L, writer, -1);
@@ -491,7 +491,7 @@ private:
 
 			size_t len = 0;
 			const char *key = lua_tolstring(L, -1, &len);
-			keys.push_back(Key(key, len));
+			keys.push_back(Key(key, static_cast<SizeType>(len)));
 			// pop value + copy of key, leaving original key
 			lua_pop(L, 2);
 			// [table, key]
@@ -517,7 +517,7 @@ private:
 
 			size_t len = 0;
 			const char *key = lua_tolstring(L, -1, &len);
-			writer->Key(key, len);
+			writer->Key(key, static_cast<SizeType>(len));
 			bool ok = encodeValue(L, writer, -2);
 			// pop value + copy of key, leaving original key
 			lua_pop(L, 2);
@@ -543,7 +543,7 @@ private:
 		std::vector<Key>::const_iterator e = const_keys.end();
 		for (; i != e; ++i)
 		{
-			writer->Key(i->key, i->size);
+			writer->Key(i->key, static_cast<SizeType>(i->size));
 			lua_pushlstring(L, i->key, i->size); // [table, key]
 			lua_gettable(L, -2); // [table, value]
 			bool ok = encodeValue(L, writer, -1);

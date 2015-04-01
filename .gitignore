@@ -7,3 +7,4 @@ CMakeFiles
 cmake_install.cmake
 json.so
 json.dll
+deps/

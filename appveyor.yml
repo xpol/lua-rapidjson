@@ -49,7 +49,7 @@ install:
 - call .scripts\install_lua.bat
 
 before_build:
-- echo "Installing external deps"
+#- echo "Installing external deps"
 
 build_script:
 - luarocks make
