@@ -41,13 +41,13 @@ local function profile(jsonfile, times)
   local dkjson = require('dkjson')
 
   local modules = {
-    dkjson = {dkjson.decode, dkjson.encode},
-    json = {json.decode, json.encode},
-    cjson = {cjson.decode, cjson.encode},
+    {'dkjson', dkjson.decode, dkjson.encode},
+    {'cjson', cjson.decode, cjson.encode},
+    {'json', json.decode, json.encode},
   }
 
-  for name, functions in pairs(modules) do
-    local dec, enc = functions[1], functions[2]
+  for _, m in ipairs(modules) do
+    local name, dec, enc = m[1], m[2], m[3]
     local td = time(function() dec(d) end, times)
     local t = dec(d)
     local te = time(function() enc(t) end, times)
@@ -56,13 +56,13 @@ local function profile(jsonfile, times)
 end
 
 local function main()
-  profile('performance/nulls.json', 10000)
-  profile('performance/booleans.json', 10000)
-  profile('performance/guids.json', 10000)
-  profile('performance/paragraphs.json', 10000)
-  profile('performance/floats.json', 10000)
-  profile('performance/integers.json', 10000)
-  profile('performance/mixed.json', 10000)
+  profile('performance/nulls.json', 1000)
+  profile('performance/booleans.json', 1000)
+  profile('performance/guids.json', 1000)
+  profile('performance/paragraphs.json', 1000)
+  profile('performance/floats.json', 1000)
+  profile('performance/integers.json', 1000)
+  profile('performance/mixed.json', 1000)
 end
 
 local r, m = pcall(main)
