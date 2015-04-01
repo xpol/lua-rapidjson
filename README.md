@@ -277,6 +277,7 @@ Same as json.array() except the metatable field `__jsontype` is set as `'array'`
 
 ### 0.2.0[WIP]
 
+* Added `option.sort_keys` option to `json.encode()` and `json.dump()`, and default value for `sort_keys` is `false`.
 * `json.object()` and `json.array()` just set metatable field `__jsontype` to `'object'` and `'array'` it passed table already have a metatable.
 * fixes dump return value of `false` rather than `nil`.
 
