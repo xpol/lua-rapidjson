@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project (rapidjson)
 
-
+if (LUA_RAPIDJSON_VERSION)
+    add_definitions(-DLUA_RAPIDJSON_VERSION="${LUA_RAPIDJSON_VERSION}")
+endif()
 
 if(UNIX)
     if(APPLE)

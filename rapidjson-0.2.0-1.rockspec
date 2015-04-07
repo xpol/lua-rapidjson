@@ -31,6 +31,7 @@ dependencies = {
 build = {
   type = 'cmake',
   variables = {
+    LUA_RAPIDJSON_VERSION = version,
     CMAKE_INSTALL_PREFIX = "$(PREFIX)",
     LUA_INCLUDE_DIR = "$(LUA_INCDIR)",
     BUILD_SHARED_LIBS="ON",
