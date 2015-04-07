@@ -288,7 +288,7 @@ A string that is `"rapidjson"`.
 
 ### rapidjson.\_VERSION
 
-The current loaded rapidjson version. `"scm"` when not configured.
+The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 ## Changelog
 
