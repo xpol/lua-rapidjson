@@ -1,8 +1,8 @@
 package = "rapidjson"
-version = "0.2.0-1"
+version = "0.2.1-1"
 source = {
-  url = 'https://github.com/xpol/rapidjson/archive/v0.2.0.tar.gz',
-  dir = 'rapidjson-master'
+  url = 'git://github.com/xpol/rapidjson',
+  tag = 'v0.2.1'
 }
 
 description = {
