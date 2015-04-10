@@ -306,8 +306,8 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 
 [RapidJSON]: https://github.com/miloyip/rapidjson
-[homepage]: https://github.com/xpol/rapidjson
-[Trivis]: https://travis-ci.org/xpol/rapidjson "Travis page"
-[TrivisStatus]: https://travis-ci.org/xpol/rapidjson.png
-[AppVeyor]: https://ci.appveyor.com/project/xpol/rapidjson/branch/master "AppVeyor page"
-[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/qrihavtrvqnv00bu/branch/master?svg=true
+[homepage]: https://github.com/xpol/lua-rapidjson
+[Trivis]: https://travis-ci.org/xpol/lua-rapidjson "Travis page"
+[TrivisStatus]: https://travis-ci.org/xpol/lua-rapidjson.svg
+[AppVeyor]: https://ci.appveyor.com/project/xpol/lua-rapidjson/branch/master "AppVeyor page"
+[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/oa3s51dkatevg81o/branch/master?svg=true
