@@ -131,7 +131,7 @@ Return nil on failure, plus an error message as a second result.
 #### Examples
 
 ```Lua
-local json = require('rapidjson')
+local rapidjson = require('rapidjson')
 
 rapidjson.encode({})     -- '{}'
 
@@ -230,7 +230,7 @@ Return false plus an error message as a second result when:
 #### Example
 
 ```Lua
-local json = require('json')
+local jsonrapid = require('rapidjson')
 
 rapidjson.dump({rapidjson.null}, 'test.json')
 rapidjson.dump({rapidjson.null}, 'test-pretty.json', {pretty=true})
@@ -244,7 +244,7 @@ The placeholder for null values in rapidjson.
 eg.
 
 ```Lua
-local json = require('json')
+local rapidjson = require('rapidjson')
 
 rapidjson.decode('[null]') --> {rapidjson.null}
 rapidjson.encode({rapidjson.null}) --> '[null]'
