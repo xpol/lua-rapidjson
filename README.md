@@ -230,7 +230,7 @@ Return false plus an error message as a second result when:
 #### Example
 
 ```Lua
-local jsonrapid = require('rapidjson')
+local rapidjson = require('rapidjson')
 
 rapidjson.dump({rapidjson.null}, 'test.json')
 rapidjson.dump({rapidjson.null}, 'test-pretty.json', {pretty=true})
