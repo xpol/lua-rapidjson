@@ -39,6 +39,9 @@ environment:
     LUA_SHORTV: 5.1
     LJ_SHORTV: 2.1
     LUA: luajit
+platform:
+  - x86
+  - x64
 
 init:
 # Make VS 2013 command line tools available
