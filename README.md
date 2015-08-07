@@ -53,7 +53,7 @@ Decode json to lua table.
 #### Synopsis
 
 ```Lua
-value = rapidjson.encode(jsonstring)
+value = rapidjson.decode(jsonstring)
 ```
 
 #### Arguments
