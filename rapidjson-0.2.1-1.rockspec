@@ -41,7 +41,7 @@ build = {
   platforms = {
     windows = {
       variables = {
-        LUA_LIBRARIES = "$(LUA_LIBDIR)$(LUALIB)", -- windows DLL needs link with importlib.
+        LUA_LIBRARIES = "$(LUA_LIBDIR)/$(LUALIB)", -- windows DLL needs link with importlib.
       }
     }
   }
