@@ -1,8 +1,10 @@
 language: cpp
 
+sudo: false
+
 env:
   global:
-    - LUAROCKS=2.2.0
+    - LUAROCKS=2.2.2
   matrix:
     - LUA=lua5.1
     - LUA=lua5.2
@@ -18,11 +20,11 @@ before_install:
   # Install Lua and setup env.
   - source .travis/setenv_lua.sh
   # Install testing dependency
-  - sudo luarocks install busted
-  - sudo luarocks install dromozoa-utf8
+  - luarocks install busted
+  - luarocks install dromozoa-utf8
 
 install:
-  - sudo luarocks make
+  - luarocks make
 
 # Run tests
 script:
