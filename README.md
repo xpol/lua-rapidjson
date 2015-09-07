@@ -1,4 +1,4 @@
-# JSON for Lua
+# RapidJSON bindings for Lua
 
 [![License](http://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 [![TrivisStatus][]][Trivis] [![AppVeyorStatus][]][AppVeyor]
