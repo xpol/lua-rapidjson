@@ -15,8 +15,8 @@ branches:
     - master
 
 before_install:
-  # Install Lua
-  - bash .scripts/setup_lua.sh
+  # Install Lua and setup env.
+  - source .travis/setenv_lua.sh
   # Install testing dependency
   - sudo luarocks install busted
   - sudo luarocks install dromozoa-utf8
