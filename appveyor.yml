@@ -13,7 +13,7 @@ environment:
 #  - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags enabled (DLUA_COMPAT_ALL).
   - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags disabled.
     NOCOMPAT: true
-# #  - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags enabled (DLUA_COMPAT_5_2).
+#  - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags enabled (DLUA_COMPAT_5_2).
   - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags disabled.
     NOCOMPAT: true
   - LJ_VER: 2.0.4
