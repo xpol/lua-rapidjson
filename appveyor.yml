@@ -1,55 +1,54 @@
 version: 0.1.0.{build}
 
-os:
-- Windows Server 2012 R2
+# Use default image unless needed
+#os:
+#- Windows Server 2012 R2
 
 shallow_clone: true
 
 environment:
-  LUAURL: http://www.lua.org/ftp
-  LUAROCKS_URL: http://keplerproject.github.io/luarocks/releases
-  LUAROCKS_REPO: http://rocks.moonscript.org
-  LUAROCKS_VER: HEAD #2.2.1
-  LUAROCKS_SHORTV: 2.2
-
-  #LUA: the Lua interpreter. either Lua or LuaJIT
-
-  DOWNLOADER: appveyor DownloadFile
-  SEVENZIP: 7z
-
+  LUAROCKS_VER: 2.2.2
   matrix:
   - LUA_VER: 5.1.5
-    LUA_SHORTV: 5.1
-    LUA: lua
-
-  - LUA_VER: 5.2.4
-    LUA_SHORTV: 5.2
-    LUA: lua
-
-  - LUA_VER: 5.3.0
-    LUA_SHORTV: 5.3
-    LUA: lua
-
-  - LJ_VER: 2.0.3
-    LUA_SHORTV: 5.1
-    LJ_SHORTV: 2.0
-    LUA: luajit
-
+  - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags enabled (DLUA_COMPAT_ALL).
+  - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags disabled.
+    NOCOMPAT: true
+  - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags enabled (DLUA_COMPAT_5_2).
+  - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags disabled.
+    NOCOMPAT: true
+  - LJ_VER: 2.0.4
   - LJ_VER: 2.1
-    LUA_SHORTV: 5.1
-    LJ_SHORTV: 2.1
-    LUA: luajit
+
+matrix:
+  allow_failures:
+    - configuration: MinGW
+      platform: x64
+
+# Abuse this section so we can have a matrix with different Compiler versions
+# Is there a better way? Like injecting an array in the matrix?
+configuration:
+ #- 2015 # disabled until LuaRocks supports it officially
+  - 2013
+  - MinGW
+
 platform:
   - x86
   - x64
 
+cache:
+  - c:\lua -> appveyor.yml
+  - c:\external -> appveyor.yml
+
+# Skip unsupported combinations (ie, VS2008 for x64 is not supported)
 init:
-# Make VS 2013 command line tools available
-- call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
+- if "%platform%" EQU "x64" ( for %%a in (2008 2010 MinGW) do ( if "%Configuration%"=="%%a" (echo "Skipping unsupported configuration" && exit /b 1 ) ) )
+
 
 install:
+# Make compiler command line tools available
+- call .scripts\set_compiler_env.bat
 # Setup Lua development/build environment
-- call .scripts\install_lua.bat
+- call .scripts\install.bat
 
 before_build:
 #- echo "Installing external deps"
