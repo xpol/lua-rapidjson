@@ -566,8 +566,8 @@ private:
 	{
 		// [table]
 		writer->StartArray();
-		size_t MAX = lua_rawlen(L, -1);
-		for (size_t n = 1; n <= MAX; ++n)
+		int MAX = static_cast<int>(lua_rawlen(L, -1)); // lua_rawlen always returns value >= 0
+		for (int n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
 			bool ok = encodeValue(L, writer, -1);
