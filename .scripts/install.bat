@@ -160,7 +160,7 @@ if not exist "%LR_ROOT%" (
 	:: Configures LuaRocks to instruct CMake the correct generator to use. Else, CMake will pick the highest
 	:: Visual Studio version installed
 	if "%Configuration%"=="MinGW" (
-		echo cmake_generator = "MinGW Makefiles" >> %LUAROCKS_INSTALL%\config.lua
+		echo cmake_generator = "MSYS Makefiles" >> %LUAROCKS_INSTALL%\config.lua
 	)
 	set Win64=
 	if "%platform%" EQU "x64" ( set Win64=" Win64" )
@@ -170,6 +170,7 @@ if not exist "%LR_ROOT%" (
 	)
 	if "%Configuration%"=="2013" (
 		echo cmake_generator = "Visual Studio 12 2013%Win64%" >> %LUAROCKS_INSTALL%\config.lua
+		echo cmake_generator = "Visual Studio 12 2013%Win64%"
 	)
 	if "%Configuration%"=="2012" (
 		echo cmake_generator = "Visual Studio 11 2011%Win64%" >> %LUAROCKS_INSTALL%\config.lua
