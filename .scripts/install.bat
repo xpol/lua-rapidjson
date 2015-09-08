@@ -162,25 +162,18 @@ if not exist "%LR_ROOT%" (
 	if "%Configuration%"=="MinGW" (
 		echo cmake_generator = "MinGW Makefiles" >> %LUAROCKS_INSTALL%\config.lua
 	)
-	set Win64=
-	if "%platform%" EQU "x64" ( set Win64=Win64 )
 
-	if "%Configuration%"=="2015" (
-		echo cmake_generator = "Visual Studio 14 2015 !Win64!" >> %LUAROCKS_INSTALL%\config.lua
-	)
-	if "%Configuration%"=="2013" (
-		echo cmake_generator = "Visual Studio 12 2013 !Win64!" >> %LUAROCKS_INSTALL%\config.lua
-		echo cmake_generator = "Visual Studio 12 2013 !Win64!"
-	)
-	if "%Configuration%"=="2012" (
-		echo cmake_generator = "Visual Studio 11 2011 !Win64!" >> %LUAROCKS_INSTALL%\config.lua
-	)
-	if "%Configuration%"=="2010" (
-		echo cmake_generator = "Visual Studio 10 2010 !Win64!" >> %LUAROCKS_INSTALL%\config.lua
-	)
-	if "%Configuration%"=="2008" (
-		echo cmake_generator = "Visual Studio 9 2008 !Win64!" >> %LUAROCKS_INSTALL%\config.lua
-	)
+	set MSVS_GENERATORS[2008]=Visual Studio 9 2008
+	set MSVS_GENERATORS[2010]=Visual Studio 10 2010
+	set MSVS_GENERATORS[2012]=Visual Studio 11 2012
+	set MSVS_GENERATORS[2013]=Visual Studio 12 2013
+	set MSVS_GENERATORS[2015]=Visual Studio 14 2015
+
+	set CMAKE_GENERATOR=MSVS_GENERATORS[%Configuration%]
+
+	if "%platform%" EQU "x64" (set CMAKE_GENERATOR=!CMAKE_GENERATOR! Win64)
+
+	echo cmake_generator = "!CMAKE_GENERATOR!" >> %LUAROCKS_INSTALL%\config.lua
 )
 
 if not exist "%LR_ROOT%" call :die "LuaRocks not found at %LR_ROOT%"
