@@ -1,22 +1,16 @@
-// Copyright (C) 2011 Milo Yip
+// Tencent is pleased to support the open source community by making RapidJSON available.
+// 
+// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the MIT License (the "License"); you may not use this file except
+// in compliance with the License. You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://opensource.org/licenses/MIT
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software distributed 
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// specific language governing permissions and limitations under the License.
 
 // This is a C++ header-only implementation of Grisu2 algorithm from the publication:
 // Loitsch, Florian. "Printing floating-point numbers quickly and accurately with
@@ -27,6 +21,7 @@
 
 #include "itoa.h" // GetDigitsLut()
 #include "diyfp.h"
+#include "ieee754.h"
 
 RAPIDJSON_NAMESPACE_BEGIN
 namespace internal {
@@ -55,8 +50,10 @@ inline unsigned CountDecimalDigit32(uint32_t n) {
     if (n < 1000000) return 6;
     if (n < 10000000) return 7;
     if (n < 100000000) return 8;
-    if (n < 1000000000) return 9;
-    return 10;
+    // Will not reach 10 digits in DigitGen()
+    //if (n < 1000000000) return 9;
+    //return 10;
+    return 9;
 }
 
 inline void DigitGen(const DiyFp& W, const DiyFp& Mp, uint64_t delta, char* buffer, int* len, int* K) {
@@ -65,13 +62,12 @@ inline void DigitGen(const DiyFp& W, const DiyFp& Mp, uint64_t delta, char* buff
     const DiyFp wp_w = Mp - W;
     uint32_t p1 = static_cast<uint32_t>(Mp.f >> -one.e);
     uint64_t p2 = Mp.f & (one.f - 1);
-    int kappa = CountDecimalDigit32(p1);
+    unsigned kappa = CountDecimalDigit32(p1); // kappa in [0, 9]
     *len = 0;
 
     while (kappa > 0) {
-        uint32_t d;
+        uint32_t d = 0;
         switch (kappa) {
-            case 10: d = p1 / 1000000000; p1 %= 1000000000; break;
             case  9: d = p1 /  100000000; p1 %=  100000000; break;
             case  8: d = p1 /   10000000; p1 %=   10000000; break;
             case  7: d = p1 /    1000000; p1 %=    1000000; break;
@@ -81,14 +77,7 @@ inline void DigitGen(const DiyFp& W, const DiyFp& Mp, uint64_t delta, char* buff
             case  3: d = p1 /        100; p1 %=        100; break;
             case  2: d = p1 /         10; p1 %=         10; break;
             case  1: d = p1;              p1 =           0; break;
-            default: 
-#if defined(_MSC_VER)
-                __assume(0);
-#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-                __builtin_unreachable();
-#else
-                d = 0;
-#endif
+            default:;
         }
         if (d || *len)
             buffer[(*len)++] = static_cast<char>('0' + static_cast<char>(d));
@@ -112,7 +101,7 @@ inline void DigitGen(const DiyFp& W, const DiyFp& Mp, uint64_t delta, char* buff
         kappa--;
         if (p2 < delta) {
             *K += kappa;
-            GrisuRound(buffer, *len, delta, p2, one.f, wp_w.f * kPow10[-kappa]);
+            GrisuRound(buffer, *len, delta, p2, one.f, wp_w.f * kPow10[-static_cast<int>(kappa)]);
             return;
         }
     }
@@ -169,14 +158,14 @@ inline char* Prettify(char* buffer, int length, int k) {
     }
     else if (0 < kk && kk <= 21) {
         // 1234e-2 -> 12.34
-        std::memmove(&buffer[kk + 1], &buffer[kk], length - kk);
+        std::memmove(&buffer[kk + 1], &buffer[kk], static_cast<size_t>(length - kk));
         buffer[kk] = '.';
         return &buffer[length + 1];
     }
     else if (-6 < kk && kk <= 0) {
         // 1234e-6 -> 0.001234
         const int offset = 2 - kk;
-        std::memmove(&buffer[offset], &buffer[0], length);
+        std::memmove(&buffer[offset], &buffer[0], static_cast<size_t>(length));
         buffer[0] = '0';
         buffer[1] = '.';
         for (int i = 2; i < offset; i++)
@@ -190,7 +179,7 @@ inline char* Prettify(char* buffer, int length, int k) {
     }
     else {
         // 1234e30 -> 1.234e33
-        std::memmove(&buffer[2], &buffer[1], length - 1);
+        std::memmove(&buffer[2], &buffer[1], static_cast<size_t>(length - 1));
         buffer[1] = '.';
         buffer[length + 1] = 'e';
         return WriteExponent(kk - 1, &buffer[0 + length + 2]);
@@ -198,7 +187,10 @@ inline char* Prettify(char* buffer, int length, int k) {
 }
 
 inline char* dtoa(double value, char* buffer) {
-    if (value == 0) {
+    Double d(value);
+    if (d.IsZero()) {
+        if (d.Sign())
+            *buffer++ = '-';     // -0.0, Issue #289
         buffer[0] = '0';
         buffer[1] = '.';
         buffer[2] = '0';
