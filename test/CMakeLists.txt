@@ -1,3 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
 find_package(GTestSrc)
 
 IF(GTESTSRC_FOUND)
@@ -9,7 +11,7 @@ IF(GTESTSRC_FOUND)
     endif()
 
     add_subdirectory(${GTEST_SOURCE_DIR} ${CMAKE_BINARY_DIR}/googletest)
-    include_directories(${GTEST_INCLUDE_DIR})
+    include_directories(SYSTEM ${GTEST_INCLUDE_DIR})
 
     set(TEST_LIBRARIES gtest gtest_main)
 

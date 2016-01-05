@@ -2,7 +2,6 @@
 // This example shows writing JSON string with writer directly.
 
 #include "rapidjson/prettywriter.h" // for stringify JSON
-#include "rapidjson/filestream.h"   // wrapper of C stream for prettywriter as output
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -19,10 +18,10 @@ protected:
     void Serialize(Writer& writer) const {
         // This base class just write out name-value pairs, without wrapping within an object.
         writer.String("name");
-#ifdef RAPIDJSON_HAS_STDSTRING
+#if RAPIDJSON_HAS_STDSTRING
         writer.String(name_);
 #else
-        writer.String(name_.c_str(), (SizeType)name_.length()); // Supplying length of string is faster.
+        writer.String(name_.c_str(), static_cast<SizeType>(name_.length())); // Supplying length of string is faster.
 #endif
         writer.String("age");
         writer.Uint(age_);
@@ -45,10 +44,10 @@ public:
         writer.StartObject();
         
         writer.String("school");
-#ifdef RAPIDJSON_HAS_STDSTRING
+#if RAPIDJSON_HAS_STDSTRING
         writer.String(school_);
 #else
-        writer.String(school_.c_str(), (SizeType)school_.length());
+        writer.String(school_.c_str(), static_cast<SizeType>(school_.length()));
 #endif
 
         writer.String("GPA");
@@ -144,13 +143,15 @@ int main(int, char*[]) {
 
     employees.push_back(Employee("Percy TSE", 30, false));
 
-    FileStream s(stdout);
-    PrettyWriter<FileStream> writer(s);     // Can also use Writer for condensed formatting
+    StringBuffer sb;
+    PrettyWriter<StringBuffer> writer(sb);
 
     writer.StartArray();
     for (std::vector<Employee>::const_iterator employeeItr = employees.begin(); employeeItr != employees.end(); ++employeeItr)
         employeeItr->Serialize(writer);
     writer.EndArray();
+
+    puts(sb.GetString());
 
     return 0;
 }
