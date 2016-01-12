@@ -7,14 +7,14 @@ version: 0.1.0.{build}
 shallow_clone: true
 
 environment:
-  LUAROCKS_VER: HEAD
+  LUAROCKS_VER: 2.3.0
   matrix:
   - LUA_VER: 5.1.5
 #  - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags enabled (DLUA_COMPAT_ALL).
   - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags disabled.
     NOCOMPAT: true
-#  - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags enabled (DLUA_COMPAT_5_2).
-  - LUA_VER: 5.3.1  # Lua 5.3.1 with compatibility flags disabled.
+#  - LUA_VER: 5.3.2  # Lua 5.3.2 with compatibility flags enabled (DLUA_COMPAT_5_2).
+  - LUA_VER: 5.3.2  # Lua 5.3.2 with compatibility flags disabled.
     NOCOMPAT: true
   - LJ_VER: 2.0.4
   - LJ_VER: 2.1
@@ -27,7 +27,7 @@ matrix:
 # Abuse this section so we can have a matrix with different Compiler versions
 # Is there a better way? Like injecting an array in the matrix?
 configuration:
-# - 2015 # disabled until LuaRocks supports it officially
+  - 2015
   - 2013
 #  - MinGW
 

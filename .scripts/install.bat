@@ -25,13 +25,6 @@ if "%LUA%"=="luajit" (
 :: Now we declare a scope
 Setlocal EnableDelayedExpansion EnableExtensions
 
-if "%LUAROCKS_VER%" NEQ "HEAD" (
-	set LUAROCKS_SHORTV=%LUAROCKS_VER:~0,3%
-) else (
-	:: Assume 2.2 for the time being. TODO: fix this
-	set LUAROCKS_SHORTV=2.2
-)
-
 if not defined LUAROCKS_URL set LUAROCKS_URL=http://keplerproject.github.io/luarocks/releases
 if not defined LUAROCKS_REPO set LUAROCKS_REPO=https://luarocks.org
 if not defined LUA_URL set LUA_URL=http://www.lua.org/ftp
@@ -40,12 +33,31 @@ if defined NOCOMPAT (
 ) else (
 	set COMPATFLAG=
 )
-if not defined LUAJIT_GIT_REPO set LUAJIT_GIT_REPO=http://luajit.org/git/luajit-2.0.git
-if not defined LUAJIT_URL set LUAJIT_URL=http://luajit.org/download
+if not defined LUAJIT_GIT_REPO set LUAJIT_GIT_REPO=https://github.com/LuaJIT/LuaJIT.git
+if not defined LUAJIT_URL set LUAJIT_URL=https://github.com/LuaJIT/LuaJIT/archive
 
 if not defined LR_EXTERNAL set LR_EXTERNAL=c:\external
 if not defined LUAROCKS_INSTALL set LUAROCKS_INSTALL=%LUA_DIR%\LuaRocks
-if not defined LR_ROOT set LR_ROOT=%LUAROCKS_INSTALL%\%LUAROCKS_SHORTV%
+
+
+:: LuaRocks <= 2.2.2 used a versioned directory
+:: HEAD and newer versions do not, so act accordingly.
+if defined LR_ROOT goto :skiplrver
+	
+if "%LUAROCKS_VER%" EQU "HEAD" (
+	set LR_ROOT=%LUAROCKS_INSTALL%
+	goto :skiplrver
+)
+set LR_ROOT=%LUAROCKS_INSTALL%
+if %LUAROCKS_VER:~0,1% LEQ 2 (
+	if %LUAROCKS_VER:~2,1% LEQ 2 (
+		if %LUAROCKS_VER:~4,1% LEQ 3 (
+			set LR_ROOT=%LUAROCKS_INSTALL%\!LUAROCKS_VER:~0,3!
+		)
+	)
+)
+:skiplrver
+
 if not defined LR_SYSTREE set LR_SYSTREE=%LUAROCKS_INSTALL%\systree
 
 if not defined SEVENZIP set SEVENZIP=7z
@@ -73,8 +85,8 @@ if "%LUA%"=="luajit" (
 		) else (
 			set lj_source_folder=%APPVEYOR_BUILD_FOLDER%\downloads\luajit-%LJ_VER%
 			if not exist !lj_source_folder! (
-				echo Downloading... %LUAJIT_URL%/LuaJIT-%LJ_VER%.tar.gz
-				curl --silent --fail --max-time 120 --connect-timeout 30 %LUAJIT_URL%/LuaJIT-%LJ_VER%.tar.gz | %SEVENZIP% x -si -so -tgzip | %SEVENZIP% x -si -ttar -aoa -odownloads
+				echo Downloading... %LUAJIT_URL%/v%LJ_VER%.tar.gz
+				curl --location --silent --fail --max-time 120 --connect-timeout 30 %LUAJIT_URL%/v%LJ_VER%.tar.gz | %SEVENZIP% x -si -so -tgzip | %SEVENZIP% x -si -ttar -aoa -odownloads
 			)
 			cd !lj_source_folder!\src
 		)
