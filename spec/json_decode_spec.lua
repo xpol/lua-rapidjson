@@ -10,7 +10,9 @@ describe('rapidjson.decode()', function()
       assert.are.equal(true, rapidjson.decode('true'))
       assert.are.equal(false, rapidjson.decode('false'))
       assert.are.equal(1E20, rapidjson.decode('100000000000000000000'))
-      assert.are.equal(9223372036854775807, rapidjson.decode('9223372036854775807'))
+      if tostring(0x7fffffffffffffff) == '9223372036854775807' then -- check if Lua is compiled with 64 bit integer
+        assert.are.equal(9223372036854775807, rapidjson.decode('9223372036854775807'))
+      end
     end)
 
     it('when parse invalid json data', function()
