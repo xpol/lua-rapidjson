@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -51,7 +52,7 @@ static void setfuncs(lua_State* L, const luaL_Reg *funcs)
 
 
 
-FILE* openForRead(const char* filename)
+static FILE* openForRead(const char* filename)
 {
 	FILE* fp = NULL;
 #if WIN32
@@ -63,7 +64,7 @@ FILE* openForRead(const char* filename)
 	return fp;
 }
 
-FILE* openForWrite(const char* filename)
+static FILE* openForWrite(const char* filename)
 {
 	FILE* fp = NULL;
 #if WIN32
@@ -380,12 +381,24 @@ private:
 		return is;
 	}
 
-	static bool isInteger(lua_State* L, int idx)
+	static bool isInteger(lua_State* L, int idx, int64_t* out)
 	{
 #if LUA_VERSION_NUM >= 503
 		if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
-			return true;
+        {
+            *out = lua_tointeger(L, idx);
+            return true;
+        }
 #endif
+        double intpart;
+        if (modf(lua_tonumber(L, idx), &intpart) == 0.0)
+        {
+            if (INT64_MIN <= intpart && intpart <= INT64_MAX)
+            {
+                *out = (int64_t)intpart;
+                return true;
+            }
+        }
 		return false;
 	}
 
@@ -436,6 +449,7 @@ private:
 
 		size_t len;
 		const char* s;
+		int64_t integer;
 		lua_pushvalue(L, idx); // [value]
 		int t = lua_type(L, -1);
 		switch (t) {
@@ -443,8 +457,8 @@ private:
 			writer->Bool(lua_toboolean(L, -1) != 0);
 			return true;
 		case LUA_TNUMBER:
-			if (isInteger(L, -1))
-				writer->Int64(lua_tointeger(L, -1));
+			if (isInteger(L, -1, &integer))
+				writer->Int64(integer);
 			else
 				writer->Double(lua_tonumber(L, -1));
 			return true;

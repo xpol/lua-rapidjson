@@ -1,12 +1,9 @@
 --luacheck: ignore describe it
 describe('rapidjson.encode()', function()
   local rapidjson = require('rapidjson')
-  local function Int(value)
-    return _VERSION < 'Lua 5.3' and value..'.0' or value
-  end
   it('should encode simple values', function()
     assert.are.equal('"very funny"', rapidjson.encode('very funny'))
-    assert.are.equal(Int'1234', rapidjson.encode(1234))
+    assert.are.equal('1234', rapidjson.encode(1234))
     assert.are.equal('12.34', rapidjson.encode(12.34))
     assert.are.equal('null', rapidjson.encode(rapidjson.null))
     assert.are.equal('true', rapidjson.encode(true))
@@ -14,15 +11,15 @@ describe('rapidjson.encode()', function()
   end)
 
   it('should detect integers', function()
-    assert.are.equal(Int'0', rapidjson.encode(0))
-    assert.are.equal(Int'0', rapidjson.encode(-0))
-    assert.are.equal(Int'-1', rapidjson.encode(-1))
-    assert.are.equal(Int'2147483647', rapidjson.encode(2147483647)) -- 0x7fffffff, INT_MAX on 32 bit system
-    assert.are.equal(Int'-2147483648', rapidjson.encode(-2147483648)) -- 0x80000000, INT_MIN on 32 bit system
+    assert.are.equal('0', rapidjson.encode(0))
+    assert.are.equal('0', rapidjson.encode(-0))
+    assert.are.equal('-1', rapidjson.encode(-1))
+    assert.are.equal('2147483647', rapidjson.encode(2147483647)) -- 0x7fffffff, INT_MAX on 32 bit system
+    assert.are.equal('-2147483648', rapidjson.encode(-2147483648)) -- 0x80000000, INT_MIN on 32 bit system
 
     if tostring(0x7fffffffffffffff) == '9223372036854775807' then -- check if Lua is compiled with 64 bit integer
-      assert.are.equal(Int'9223372036854775807', rapidjson.encode(0x7fffffffffffffff))
-      assert.are.equal(Int'-9223372036854775808', rapidjson.encode(0x8000000000000000))
+      assert.are.equal('9223372036854775807', rapidjson.encode(0x7fffffffffffffff))
+      assert.are.equal('-9223372036854775808', rapidjson.encode(0x8000000000000000))
     end
   end)
 
@@ -54,12 +51,12 @@ describe('rapidjson.encode()', function()
 
 
   it('should encode simple array', function()
-    assert.are.same('['..Int'1'..',2.1'..',"3",true]', rapidjson.encode({1, 2.1, '3', true}))
+    assert.are.same('[1,2.1,"3",true]', rapidjson.encode({1, 2.1, '3', true}))
   end)
 
   it('should encode simple object', function()
     assert.are.same(
-      '{"a":'..Int'1'..',"b":2.1,"c":"","d":false}',
+      '{"a":1,"b":2.1,"c":"","d":false}',
       rapidjson.encode({a=1, b=2.1, c='', d=false}, {sort_keys=true})
     )
   end)
@@ -80,8 +77,8 @@ describe('rapidjson.encode()', function()
 
   it('should encode all number formats', function()
     assert.are.same(
-      '['..Int('1000')..','..Int('-1000')..',23.4,-23.4,1990.0,-10000000.0,-0.001,10000000.0,1990.0,1990.0,-0.00199,-1990.0]',
-      rapidjson.encode({1000, -1000, 23.4, -23.4, 1.99e3, -100E5, -100e-5, 100e5, 1.99E3, 1.99E3, -1.99e-3, -1.99e3}))
+      '[1000,-1000,23.4,-23.4,1990,-10000000,-0.001,10000000,1990,1990,-0.00199,-1990,100000000000000000000.0]',
+      rapidjson.encode({1000, -1000, 23.4, -23.4, 1.99e3, -100E5, -100e-5, 100e5, 1.99E3, 1.99E3, -1.99e-3, -1.99e3, 1E20}))
 
     assert.are.equal(
       '[2.3456789012e76]',

@@ -9,6 +9,8 @@ describe('rapidjson.decode()', function()
       assert.are.equal(rapidjson.null, rapidjson.decode('null'))
       assert.are.equal(true, rapidjson.decode('true'))
       assert.are.equal(false, rapidjson.decode('false'))
+      assert.are.equal(1E20, rapidjson.decode('100000000000000000000'))
+      assert.are.equal(9223372036854775807, rapidjson.decode('9223372036854775807'))
     end)
 
     it('when parse invalid json data', function()
