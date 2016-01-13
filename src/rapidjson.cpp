@@ -1,5 +1,5 @@
 #define __STDC_LIMIT_MACROS
-#include <stdint>
+#include <stdint.h>
 #include <cstdio>
 #include <cmath>
 #include <vector>
