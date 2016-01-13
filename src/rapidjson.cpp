@@ -1,4 +1,5 @@
-#include <stdint.h>
+#include <cstdint>
+#include <climits>
 #include <cstdio>
 #include <cmath>
 #include <vector>
@@ -394,7 +395,9 @@ private:
         double intpart;
         if (modf(lua_tonumber(L, idx), &intpart) == 0.0)
         {
-            if (INT64_MIN <= intpart && intpart <= INT64_MAX)
+            static double MIN = std::numeric_limits<int64_t>::min();
+            static double MAX = std::numeric_limits<int64_t>::max();
+            if (MIN <= intpart && intpart <= MAX)
             {
                 *out = (int64_t)intpart;
                 return true;
