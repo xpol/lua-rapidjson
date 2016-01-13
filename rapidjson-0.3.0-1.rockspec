@@ -2,7 +2,7 @@ package = "rapidjson"
 version = "0.2.2-1"
 source = {
   url = 'git://github.com/xpol/rapidjson',
-  tag = 'v0.2.2-1'
+  tag = 'v0.3.0'
 }
 
 description = {
