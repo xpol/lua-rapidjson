@@ -202,22 +202,22 @@ struct ToLuaHandler {
 		return true;
 	}
 	bool Uint(unsigned u) {
-		lua_pushinteger(L, u);
+		lua_pushnumber(L, static_cast<lua_Number>(u));
 		current_.submit(L);
 		return true;
 	}
 	bool Int64(int64_t i) {
-		lua_pushinteger(L, i);
+		lua_pushnumber(L, static_cast<lua_Number>(i));
 		current_.submit(L);
 		return true;
 	}
 	bool Uint64(uint64_t u) {
-		lua_pushinteger(L, u);
+		lua_pushnumber(L, static_cast<lua_Number>(u));
 		current_.submit(L);
 		return true;
 	}
 	bool Double(double d) {
-		lua_pushnumber(L, d);
+		lua_pushnumber(L, static_cast<lua_Number>(d));
 		current_.submit(L);
 		return true;
 	}
@@ -342,6 +342,8 @@ struct Key
 
 
 class Encoder {
+	bool pretty;
+	bool sort_keys;
 public:
 	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false)
 	{
@@ -366,9 +368,6 @@ private:
 		*value = lua_toboolean(L, -1) != 0;
 	}
 
-	bool pretty;
-	bool sort_keys;
-
 	static bool isJsonNull(lua_State* L, int idx)
 	{
 		lua_pushvalue(L, idx); // [value]
@@ -386,21 +385,21 @@ private:
 	{
 #if LUA_VERSION_NUM >= 503
 		if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
-        {
-            *out = lua_tointeger(L, idx);
-            return true;
-        }
+		{
+			*out = lua_tointeger(L, idx);
+			return true;
+		}
 #endif
-        double intpart;
-        if (modf(lua_tonumber(L, idx), &intpart) == 0.0)
-        {
-            if (std::numeric_limits<lua_Integer>::min() <= intpart
-            && intpart <= std::numeric_limits<lua_Integer>::max())
-            {
-                *out = (int64_t)intpart;
-                return true;
-            }
-        }
+		double intpart;
+		if (modf(lua_tonumber(L, idx), &intpart) == 0.0)
+		{
+			if (std::numeric_limits<lua_Integer>::min() <= intpart
+			&& intpart <= std::numeric_limits<lua_Integer>::max())
+			{
+				*out = (int64_t)intpart;
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -425,24 +424,11 @@ private:
 	static bool isArray(lua_State* L, int idx)
 	{
 		bool isarray = false;
-		if (hasJsonType(L, idx, isarray))
+		if (hasJsonType(L, idx, isarray)) // any table with a meta field __jsontype set to 'array' are arrays
 			return isarray;
 
-		return (lua_rawlen(L, idx) != 0);
+		return (lua_rawlen(L, idx) > 0); // any table has length > 0 are treat as array.
 	}
-
-	static bool isArray(lua_State* L, int idx, const std::vector<Key>& keys)
-	{
-		bool isarray = false;
-		if (hasJsonType(L, idx, isarray))
-			return isarray;
-
-		if (keys.empty()) // empty table without meta field are trade as object
-			return false;
-
-		return (lua_rawlen(L, idx) == keys.size()); // key number is same as # are trade as array
-	}
-
 
 	template<typename Writer>
 	bool encodeValue(lua_State* L, Writer* writer, int idx)
@@ -497,9 +483,7 @@ private:
 		lua_pushvalue(L, idx); // [table]
 
 		if (!sort_keys)
-			return isArray(L, -1) ?
-				encodeArray(L, writer) :
-				encodeObject(L, writer);
+			return isArray(L, -1) ? encodeArray(L, writer) : encodeObject(L, writer);
 
 		lua_pushnil(L); // [table, nil]
 		std::vector<Key> keys;
@@ -507,20 +491,20 @@ private:
 		while (lua_next(L, -2))
 		{
 			// [table, key, value]
-			lua_pushvalue(L, -2);
-			// [table, key, value, key]
 
-			size_t len = 0;
-			const char *key = lua_tolstring(L, -1, &len);
-			keys.push_back(Key(key, static_cast<SizeType>(len)));
-			// pop value + copy of key, leaving original key
-			lua_pop(L, 2);
+			if (lua_type(L, -2) == LUA_TSTRING)
+			{
+				size_t len = 0;
+				const char *key = lua_tolstring(L, -2, &len);
+				keys.push_back(Key(key, static_cast<SizeType>(len)));
+			}
+
+			// pop value, leaving original key
+			lua_pop(L, 1);
 			// [table, key]
 		}
 		// [table]
-		return isArray(L, -1, keys) ?
-			encodeArray(L, writer) :
-			encodeObject(L, writer, keys);
+		return isArray(L, -1) ? encodeArray(L, writer) : encodeObject(L, writer, keys);
 	}
 
 	template<typename Writer>
@@ -533,18 +517,18 @@ private:
 		while (lua_next(L, -2))
 		{
 			// [table, key, value]
-			lua_pushvalue(L, -2);
-			// [table, key, value, key]
+			if (lua_type(L, -2) == LUA_TSTRING)
+			{
+				size_t len = 0;
+				const char *key = lua_tolstring(L, -2, &len);
+				writer->Key(key, static_cast<SizeType>(len));
+				if (!encodeValue(L, writer, -1))
+                    return false;
+			}
 
-			size_t len = 0;
-			const char *key = lua_tolstring(L, -1, &len);
-			writer->Key(key, static_cast<SizeType>(len));
-			bool ok = encodeValue(L, writer, -2);
-			// pop value + copy of key, leaving original key
-			lua_pop(L, 2);
+			// pop value, leaving original key
+			lua_pop(L, 1);
 			// [table, key]
-			if (!ok)
-				return false;
 		}
 		// [table]
 		writer->EndObject();
@@ -567,10 +551,9 @@ private:
 			writer->Key(i->key, static_cast<SizeType>(i->size));
 			lua_pushlstring(L, i->key, i->size); // [table, key]
 			lua_gettable(L, -2); // [table, value]
-			bool ok = encodeValue(L, writer, -1);
+			if (!encodeValue(L, writer, -1))
+                return false;
 			lua_pop(L, 1); // [table]
-			if (!ok)
-				return false;
 		}
 		// [table]
 		writer->EndObject();
@@ -586,10 +569,9 @@ private:
 		for (int n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
-			bool ok = encodeValue(L, writer, -1);
+			if (!encodeValue(L, writer, -1))
+                return false;
 			lua_pop(L, 1); // [table]
-			if (!ok)
-				return false;
 		}
 		writer->EndArray();
 		return true;

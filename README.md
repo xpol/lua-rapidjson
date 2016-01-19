@@ -27,8 +27,19 @@ rapidjson.load()
 rapidjson.dump()
 ```
 
-## Test
+## Value Type Mappings
 
+Lua Type          | JSON type    | Notes
+------------------|--------------|----------------------
+`rapidjson.null`  |`null`        |
+`true`            |`true`        |
+`false`           |`false`       |
+string            |string        |
+table             |array         |when meta field `__jsontype` is `'array'` or no `__jsontype` meta filed and table length > 0
+table             |object        |when not an array, all non string keys and its values are ignored.
+number            |number        |
+
+## Test
 
 Clone or download source code, in the project root folder:
 
@@ -102,10 +113,10 @@ string = rapidjson.encode(value [, option])
 
 When passed a table:
 
-1. Trade as array if:
-    - metatable field `__jsontype` set to `array`.
-    - table contains only integer keys from 1 to n.
-2. Otherwise the table are trade as object and integer keys are converted to string.
+1. it is encoded as array if:
+    - meta field `__jsontype` set to `array`.
+    - table contains length > 0.
+2. Otherwise the table is encoded as object and non string keys and its values are ignored.
 
 When passed with `true`, `false`, number and `rapidjson.null`, simply encode as simple json value.
 
@@ -258,7 +269,7 @@ Create a new empty table that have metatable field `__jsontype` set as `'object'
 When passed an valid table:
 
 * Passed table do not have metatable, just set above metatable for the table.
-* Passed table already have metatable, just the the metatable field `__jsontype` to 'object'.
+* Passed table already have metatable, set the metatable field `__jsontype` to 'object'.
 
 #### Synopsis
 
@@ -270,7 +281,7 @@ obj = rapidjson.object([t])
 
 *t*
 
-Optinal table to be set the metatable with meta field `__jsontype` set as `'object'`.
+Optional table to be set the metatable with meta field `__jsontype` set as `'object'`.
 
 #### Returns
 
@@ -292,9 +303,17 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 ## Changelog
 
+### 0.4.0
+
+* A table is encoded as json array if:
+  - have meta field `__jsontype` set to `'array'`.
+  - don't have meta filed `__jsontype` and length > 0.
+* When table is encoded as json object, **only string keys and its values are encoded**.
+* Integers are convert lua_Number when apidjson cpp library decode string into `unsigned`, `int64_t`, `uint64_t`.
+
 ### 0.3.0
 
-* Follow integers are encoded as integers string.
+* Follow integers are encoded as integers.
   - Lua 5.3 integers.
   - Integers stored in double and in between:
     - [INT64_MIN..INT64_MAX] on 64 bit Lua or
