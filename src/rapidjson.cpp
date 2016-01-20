@@ -202,17 +202,26 @@ struct ToLuaHandler {
 		return true;
 	}
 	bool Uint(unsigned u) {
-		lua_pushnumber(L, static_cast<lua_Number>(u));
+		if (u <= std::numeric_limits<lua_Integer>::max())
+			lua_pushinteger(L, static_cast<lua_Integer>(u));
+		else
+			lua_pushnumber(L, static_cast<lua_Number>(u));
 		current_.submit(L);
 		return true;
 	}
 	bool Int64(int64_t i) {
-		lua_pushnumber(L, static_cast<lua_Number>(i));
+		if (i <= std::numeric_limits<lua_Integer>::max() && i >= std::numeric_limits<lua_Integer>::min())
+			lua_pushinteger(L, static_cast<lua_Integer>(i));
+		else
+			lua_pushnumber(L, static_cast<lua_Number>(i));
 		current_.submit(L);
 		return true;
 	}
 	bool Uint64(uint64_t u) {
-		lua_pushnumber(L, static_cast<lua_Number>(u));
+		if (u <= std::numeric_limits<lua_Integer>::max())
+			lua_pushinteger(L, static_cast<lua_Integer>(u));
+		else
+			lua_pushnumber(L, static_cast<lua_Number>(u));
 		current_.submit(L);
 		return true;
 	}
