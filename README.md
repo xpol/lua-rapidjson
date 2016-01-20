@@ -94,7 +94,7 @@ Encode lua table to json string.
 supports the following types:
 
 * boolean
-* function (rapidjson.null only)
+* rapidjson.null (it is actually a function)
 * number
 * string
 * table
@@ -113,10 +113,10 @@ string = rapidjson.encode(value [, option])
 
 When passed a table:
 
-1. it is encoded as array if:
+1. it is encoded as json array if:
     - meta field `__jsontype` set to `array`.
     - table contains length > 0.
-2. Otherwise the table is encoded as object and non string keys and its values are ignored.
+2. otherwise the table is encoded as json object and non string keys and its values are ignored.
 
 When passed with `true`, `false`, number and `rapidjson.null`, simply encode as simple json value.
 
@@ -309,7 +309,7 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
   - have meta field `__jsontype` set to `'array'`.
   - don't have meta filed `__jsontype` and length > 0.
 * When table is encoded as json object, **only string keys and its values are encoded**.
-* Integers are convert lua_Number when apidjson cpp library decode string into `unsigned`, `int64_t`, `uint64_t`.
+* Integers are decoded to lua_Integer if it can be stored in lua_Integer.
 
 ### 0.3.0
 
@@ -325,7 +325,7 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 * Rename module to `rapidjson`.
 * Added `option.sort_keys` option to `rapidjson.encode()` and `rapidjson.dump()`, and default value for `sort_keys` is `false`.
 * Added `rapidjson._NAME` (`"rapidjson"`) and `rapidjson._VERSION`.
-* `rapidjson.object()` and `rapidjson.array()` just set metatable field `__jsontype` to `'object'` and `'array'` it passed table already have a metatable.
+* `rapidjson.object()` and `rapidjson.array()` just set metatable field `__jsontype` to `'object'` and `'array'` if passed table already have a metatable.
 * fixes dump return value of `false` rather than `nil`.
 
 ### 0.1.0
