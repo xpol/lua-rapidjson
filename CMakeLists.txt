@@ -37,25 +37,25 @@ endif()
 
 include_directories(${LUA_INCLUDE_DIR} rapidjson/include)
 
-add_library (json MODULE src/rapidjson.cpp)
+add_library (rapidjson MODULE src/rapidjson.cpp)
 
 if (LUA_LIBRARIES)
     message("Using LUALIB:${LUA_LIBRARIES}")
-    target_link_libraries(json ${LUA_LIBRARIES})
+    target_link_libraries(rapidjson ${LUA_LIBRARIES})
 endif()
 
 if (LINK_FLAGS)
-    set_target_properties(json PROPERTIES
+    set_target_properties(rapidjson PROPERTIES
         LINK_FLAGS ${LINK_FLAGS}
     )
 endif()
 
-set_target_properties(json PROPERTIES
+set_target_properties(rapidjson PROPERTIES
     OUTPUT_NAME "rapidjson"
     PREFIX ""
 )
 
 
 if (CMAKE_INSTALL_PREFIX)
-  install(TARGETS json DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+  install(TARGETS rapidjson DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
 endif(CMAKE_INSTALL_PREFIX)

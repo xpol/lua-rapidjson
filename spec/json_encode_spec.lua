@@ -6,6 +6,7 @@ describe('rapidjson.encode()', function()
     assert.are.equal('1234', rapidjson.encode(1234))
     assert.are.equal('12.34', rapidjson.encode(12.34))
     assert.are.equal('null', rapidjson.encode(rapidjson.null))
+    assert.are.equal('null', rapidjson.encode(nil))
     assert.are.equal('true', rapidjson.encode(true))
     assert.are.equal('false', rapidjson.encode(false))
   end)
@@ -24,17 +25,13 @@ describe('rapidjson.encode()', function()
   end)
 
   it('should not enocde invalid values', function()
-    local r, m = rapidjson.encode(function()end)
-    assert.are.equal(nil, r)
-    assert.are.equal("can't encode to json.", m)
+    assert.has_error(function()
+      rapidjson.encode(function()end)
+    end)
 
-    r, m = rapidjson.encode(nil)
-    assert.are.equal(nil, r)
-    assert.are.equal("can't encode to json.", m)
-
-    r, m = rapidjson.encode(io.output())
-    assert.are.equal(nil, r)
-    assert.are.equal("can't encode to json.", m)
+    assert.has_error(function()
+      rapidjson.encode(io.output())
+    end)
   end)
 
 
@@ -66,6 +63,21 @@ describe('rapidjson.encode()', function()
       '{"a":[{"b":[1.1,2.2,3.3],"c":{}},{}]}',
       rapidjson.encode({a={{b={1.1,2.2,3.3}, c={}}, {}}}, {sort_keys=true})
     )
+  end)
+
+  it('should detect avoid circular reference', function()
+    local a = {}
+    a.b = a
+    assert.has_error(function()
+      rapidjson.encode(a)
+    end)
+  end)
+
+  it('should accept max_depth options', function()
+    --local a = {b={c={e={}}}}
+    --assert.has_error(function()
+    --  rapidjson.encode(a, {max_depth=2})
+    --end)
   end)
 
   it('should parse escaped characters', function()

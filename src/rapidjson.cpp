@@ -300,11 +300,9 @@ inline int decode(lua_State* L, Stream* s)
 static int json_decode(lua_State* L)
 {
 	size_t len = 0;
-
 	const char* contents = luaL_checklstring(L, 1, &len);
 	StringStream s(contents);
 	return decode(L, &s);
-
 }
 
 
@@ -314,28 +312,29 @@ static int json_load(lua_State* L)
 	const char* filename = luaL_checklstring(L, 1, NULL);
 	FILE* fp = openForRead(filename);
 	if (fp == NULL)
-	{
-		lua_pushnil(L);
-		lua_pushliteral(L, "error while open file");
-		return 2;
-	}
+        luaL_error(L, "error while open file: %s", filename);
 
 	static const size_t BufferSize = 16 * 1024;
 	std::vector<char> readBuffer(BufferSize);
 	FileReadStream fs(fp, &readBuffer.front(), BufferSize);
 	AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
+
 	int n = decode(L, &eis);
-	fclose(fp);
+
+    fclose(fp);
 	return n;
 }
 
-struct restore_stack{
-	restore_stack(lua_State* state) : top(lua_gettop(state)), L(state) {}
-	~restore_stack() { lua_settop(L, top); }
+struct stack_checker{
+	stack_checker(lua_State* state) : top(lua_gettop(state)), L(state) {}
+	~stack_checker() {
+        assert(lua_gettop(L) == top);
+    }
 	int top;
 private:
 	lua_State* L;
 };
+
 
 struct Key
 {
@@ -353,30 +352,39 @@ struct Key
 class Encoder {
 	bool pretty;
 	bool sort_keys;
+    int max_depth;
+    static const int MAX_DEPTH_DEFAULT = 64;
 public:
-	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false)
+	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false), max_depth(MAX_DEPTH_DEFAULT)
 	{
 		if (lua_isnoneornil(L, opt))
 			return;
 		luaL_checktype(L, opt, LUA_TTABLE);
 
-		lua_pushvalue(L, opt); // [table]
-		booleanField(L, "pretty", &pretty);
-		booleanField(L, "sort_keys", &sort_keys);
+		pretty = optBooleanField(L, opt, "pretty", false);
+		sort_keys = optBooleanField(L, opt, "sort_keys", false);
+        max_depth = optIntegerField(L, opt, "max_depth", MAX_DEPTH_DEFAULT);
 	}
 
 private:
-	void booleanField(lua_State* L, const char* name,bool* value)
+	bool optBooleanField(lua_State* L, int idx, const char* name, bool def)
 	{
-		restore_stack save(L);
-		lua_getfield(L, -1, name);  // [field]
-		if (lua_isnoneornil(L, -1))
-			return;
-		if (!lua_isboolean(L, -1))
-			return;
-		*value = lua_toboolean(L, -1) != 0;
+        bool v = def;
+		lua_getfield(L, idx, name);  // [field]
+		if (!lua_isnoneornil(L, -1))
+			v = lua_toboolean(L, -1) != 0;;
+		lua_pop(L, 1);
+        return v;
 	}
-
+    int optIntegerField(lua_State* L, int idx, const char* name, int def)
+	{
+        int v = def;
+		lua_getfield(L, idx, name);  // [field]
+		if (lua_isnumber(L, -1))
+			v = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+        return v;
+	}
 	static bool isJsonNull(lua_State* L, int idx)
 	{
 		lua_pushvalue(L, idx); // [value]
@@ -415,19 +423,21 @@ private:
 
 	static bool hasJsonType(lua_State* L, int idx, bool& isarray)
 	{
-		restore_stack keep(L);
-		lua_pushvalue(L, idx); // [value]
+        bool has = false;
+		if (lua_getmetatable(L, idx)){
+            // [metatable]
+            lua_getfield(L, -1, JSON_TABLE_TYPE_FIELD); // [metatable, metatable.__jsontype]
+            if (lua_isstring(L, -1))
+            {
+                size_t len;
+                const char* s = lua_tolstring(L, -1, &len);
+                isarray = (s != NULL && strncmp(s, "array", 6) == 0);
+                has = true;
+            }
+            lua_pop(L, 2); // []
+        }
 
-		lua_getmetatable(L, -1); // [value, meta]
-		lua_getfield(L, -1, JSON_TABLE_TYPE_FIELD); // [value, meta, meta.__jsontype]
-		if (lua_isnoneornil(L, -1))
-			return false;
-		lua_pushvalue(L, -1);// [value, meta, meta.__jsontype, meta.__jsontype]
-
-		size_t len;
-		const char* s = lua_tolstring(L, -1, &len);
-		isarray = (s != NULL && strncmp(s, "array", 6) == 0);
-		return true;
+		return has;
 	}
 
 	static bool isArray(lua_State* L, int idx)
@@ -440,59 +450,68 @@ private:
 	}
 
 	template<typename Writer>
-	bool encodeValue(lua_State* L, Writer* writer, int idx)
+	void encodeValue(lua_State* L, Writer* writer, int idx, int depth = 0)
 	{
-		restore_stack keep(L);
-
 		size_t len;
 		const char* s;
 		int64_t integer;
-		lua_pushvalue(L, idx); // [value]
-		int t = lua_type(L, -1);
+		int t = lua_type(L, idx);
 		switch (t) {
 		case LUA_TBOOLEAN:
-			writer->Bool(lua_toboolean(L, -1) != 0);
-			return true;
+			writer->Bool(lua_toboolean(L, idx) != 0);
+			return;
 		case LUA_TNUMBER:
-			if (isInteger(L, -1, &integer))
+			if (isInteger(L, idx, &integer))
 				writer->Int64(integer);
 			else
-				writer->Double(lua_tonumber(L, -1));
-			return true;
+				writer->Double(lua_tonumber(L, idx));
+			return;
 		case LUA_TSTRING:
-			s = lua_tolstring(L, -1, &len);
+			s = lua_tolstring(L, idx, &len);
 			writer->String(s, static_cast<SizeType>(len));
-			return true;
+			return;
 		case LUA_TTABLE:
-			return encodeTable(L, writer, -1);
+			return encodeTable(L, writer, idx, depth + 1);
+        case LUA_TNIL:
+            writer->Null();
+            return;
 		case LUA_TFUNCTION:
-			if (isJsonNull(L, -1))
+			if (isJsonNull(L, idx))
 			{
 				writer->Null();
-				return true;
+				return;
 			}
 			// otherwise fall thought
 		case LUA_TLIGHTUSERDATA: // fall thought
 		case LUA_TUSERDATA: // fall thought
 		case LUA_TTHREAD: // fall thought
 		case LUA_TNONE: // fall thought
-		case LUA_TNIL: // fall thought
 		default:
-			std::string s("can't encode ");
-			s += lua_typename(L, t);
-			//luaL_argerror(L, 1, s.data()); // never returns.
-			return false;
+            luaL_error(L, "value type : %s", lua_typename(L, t));
+			return;
 		}
 	}
 
 	template<typename Writer>
-	bool encodeTable(lua_State* L, Writer* writer, int idx)
+	void encodeTable(lua_State* L, Writer* writer, int idx, int depth)
 	{
-		restore_stack restore(L);
+        if (depth > max_depth)
+            return;//luaL_error(L, "nested too depth");
 		lua_pushvalue(L, idx); // [table]
+        if (isArray(L, -1))
+        {
+            encodeArray(L, writer, depth);
+            lua_pop(L, 1); // []
+            return;
+        }
 
+        // is object.
 		if (!sort_keys)
-			return isArray(L, -1) ? encodeArray(L, writer) : encodeObject(L, writer);
+        {
+            encodeObject(L, writer, depth);
+            lua_pop(L, 1); // []
+            return;
+        }
 
 		lua_pushnil(L); // [table, nil]
 		std::vector<Key> keys;
@@ -513,11 +532,12 @@ private:
 			// [table, key]
 		}
 		// [table]
-		return isArray(L, -1) ? encodeArray(L, writer) : encodeObject(L, writer, keys);
+		encodeObject(L, writer, depth, keys);
+        lua_pop(L, 1);
 	}
 
 	template<typename Writer>
-	bool encodeObject(lua_State* L, Writer* writer)
+	void encodeObject(lua_State* L, Writer* writer, int depth)
 	{
 		writer->StartObject();
 
@@ -531,8 +551,7 @@ private:
 				size_t len = 0;
 				const char *key = lua_tolstring(L, -2, &len);
 				writer->Key(key, static_cast<SizeType>(len));
-				if (!encodeValue(L, writer, -1))
-                    return false;
+				encodeValue(L, writer, -1, depth);
 			}
 
 			// pop value, leaving original key
@@ -541,36 +560,32 @@ private:
 		}
 		// [table]
 		writer->EndObject();
-		return true;
 	}
 
 	template<typename Writer>
-	bool encodeObject(lua_State* L, Writer* writer, std::vector<Key> &keys)
+	void encodeObject(lua_State* L, Writer* writer, int depth, std::vector<Key> &keys)
 	{
 		// [table]
 		writer->StartObject();
 
 		std::sort(keys.begin(), keys.end());
 
-		const std::vector<Key>& const_keys = keys;
-		std::vector<Key>::const_iterator i = const_keys.begin();
-		std::vector<Key>::const_iterator e = const_keys.end();
+		std::vector<Key>::const_iterator i = keys.begin();
+		std::vector<Key>::const_iterator e = keys.end();
 		for (; i != e; ++i)
 		{
 			writer->Key(i->key, static_cast<SizeType>(i->size));
 			lua_pushlstring(L, i->key, i->size); // [table, key]
 			lua_gettable(L, -2); // [table, value]
-			if (!encodeValue(L, writer, -1))
-                return false;
+			encodeValue(L, writer, -1, depth);
 			lua_pop(L, 1); // [table]
 		}
 		// [table]
 		writer->EndObject();
-		return true;
 	}
 
 	template<typename Writer>
-	bool encodeArray(lua_State* L, Writer* writer)
+	void encodeArray(lua_State* L, Writer* writer, int depth)
 	{
 		// [table]
 		writer->StartArray();
@@ -578,27 +593,26 @@ private:
 		for (int n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
-			if (!encodeValue(L, writer, -1))
-                return false;
+			encodeValue(L, writer, -1, depth);
 			lua_pop(L, 1); // [table]
 		}
 		writer->EndArray();
-		return true;
+        // [table]
 	}
 
 public:
 	template<typename Stream>
-	bool encode(lua_State* L, Stream* s, int idx)
+	void encode(lua_State* L, Stream* s, int idx)
 	{
 		if (pretty)
 		{
 			PrettyWriter<Stream> writer(*s);
-			return encodeValue(L, &writer, idx);
+			encodeValue(L, &writer, idx);
 		}
 		else
 		{
 			Writer<Stream> writer(*s);
-			return encodeValue(L, &writer, idx);
+			encodeValue(L, &writer, idx);
 		}
 	}
 };
@@ -606,18 +620,17 @@ public:
 
 static int json_encode(lua_State* L)
 {
-	Encoder encode(L, 2);
-
-	StringBuffer s;
-
-	if (!encode.encode(L, &s, 1))
-	{
-		lua_pushnil(L);
-		lua_pushliteral(L, "can't encode to json.");
-		return 2;
-	}
-	lua_pushlstring(L, s.GetString(), s.GetSize());
-	return 1;
+    try{
+        Encoder encode(L, 2);
+    	StringBuffer s;
+        encode.encode(L, &s, 1);
+        lua_pushlstring(L, s.GetString(), s.GetSize());
+        return 1;
+    }
+    catch (...) {
+        luaL_error(L, "error while encoding");
+    }
+	return 0;
 }
 
 
@@ -625,25 +638,17 @@ static int json_dump(lua_State* L)
 {
 	Encoder encoder(L, 3);
 
-	FILE* fp = openForWrite(luaL_checkstring(L, 2));
-
+    const char* filename = luaL_checkstring(L, 2);
+	FILE* fp = openForWrite(filename);
 	if (fp == NULL)
-	{
-		lua_pushboolean(L, false);
-		lua_pushliteral(L, "error while open file");
-		return 2;
-	}
+		luaL_error(L, "error while open file: %s", filename);
 
-	static const size_t sz = 16 * 1024;
+	static const size_t sz = 4 * 1024;
 	std::vector<char> buffer(sz);
 	FileWriteStream fs(fp, &buffer.front(), sz);
-	bool ok = encoder.encode(L, &fs, 1);
+	encoder.encode(L, &fs, 1);
 	fclose(fp);
-	lua_pushboolean(L, ok);
-	if (ok)
-		return 1;
-	lua_pushliteral(L, "can't encode to json.");
-	return 2;
+    return 0;
 }
 
 
@@ -665,9 +670,7 @@ static const luaL_Reg methods[] = {
 
 
 
-extern "C" {
-
-LUALIB_API int luaopen_rapidjson(lua_State* L)
+extern "C" int luaopen_rapidjson(lua_State* L)
 {
 	lua_newtable(L); // [rapidjson]
 
@@ -686,6 +689,4 @@ LUALIB_API int luaopen_rapidjson(lua_State* L)
 	createSharedMeta(L, JSON_TABLE_TYPE_ARRAY);
 
 	return 1;
-}
-
 }
