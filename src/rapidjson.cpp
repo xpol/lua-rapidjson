@@ -673,8 +673,9 @@ static const luaL_Reg methods[] = {
 };
 
 
+extern "C" {
 
-extern "C" int luaopen_rapidjson(lua_State* L)
+LUALIB_API int luaopen_rapidjson(lua_State* L)
 {
 	lua_newtable(L); // [rapidjson]
 
@@ -693,4 +694,6 @@ extern "C" int luaopen_rapidjson(lua_State* L)
 	createSharedMeta(L, JSON_TABLE_TYPE_ARRAY);
 
 	return 1;
+}
+
 }
