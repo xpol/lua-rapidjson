@@ -312,7 +312,7 @@ static int json_load(lua_State* L)
 	const char* filename = luaL_checklstring(L, 1, NULL);
 	FILE* fp = openForRead(filename);
 	if (fp == NULL)
-        luaL_error(L, "error while open file: %s", filename);
+		luaL_error(L, "error while open file: %s", filename);
 
 	static const size_t BufferSize = 16 * 1024;
 	std::vector<char> readBuffer(BufferSize);
@@ -321,15 +321,15 @@ static int json_load(lua_State* L)
 
 	int n = decode(L, &eis);
 
-    fclose(fp);
+	fclose(fp);
 	return n;
 }
 
 struct stack_checker{
 	stack_checker(lua_State* state) : top(lua_gettop(state)), L(state) {}
 	~stack_checker() {
-        assert(lua_gettop(L) == top);
-    }
+		assert(lua_gettop(L) == top);
+	}
 	int top;
 private:
 	lua_State* L;
@@ -363,27 +363,27 @@ public:
 
 		pretty = optBooleanField(L, opt, "pretty", false);
 		sort_keys = optBooleanField(L, opt, "sort_keys", false);
-        max_depth = optIntegerField(L, opt, "max_depth", MAX_DEPTH_DEFAULT);
+		max_depth = optIntegerField(L, opt, "max_depth", MAX_DEPTH_DEFAULT);
 	}
 
 private:
 	bool optBooleanField(lua_State* L, int idx, const char* name, bool def)
 	{
-        bool v = def;
+		bool v = def;
 		lua_getfield(L, idx, name);  // [field]
 		if (!lua_isnoneornil(L, -1))
 			v = lua_toboolean(L, -1) != 0;;
 		lua_pop(L, 1);
-        return v;
+		return v;
 	}
-    int optIntegerField(lua_State* L, int idx, const char* name, int def)
+	int optIntegerField(lua_State* L, int idx, const char* name, int def)
 	{
-        int v = def;
+		int v = def;
 		lua_getfield(L, idx, name);  // [field]
 		if (lua_isnumber(L, -1))
 			v = lua_tointeger(L, -1);
 		lua_pop(L, 1);
-        return v;
+		return v;
 	}
 	static bool isJsonNull(lua_State* L, int idx)
 	{
@@ -423,19 +423,19 @@ private:
 
 	static bool hasJsonType(lua_State* L, int idx, bool& isarray)
 	{
-        bool has = false;
+		bool has = false;
 		if (lua_getmetatable(L, idx)){
-            // [metatable]
-            lua_getfield(L, -1, JSON_TABLE_TYPE_FIELD); // [metatable, metatable.__jsontype]
-            if (lua_isstring(L, -1))
-            {
-                size_t len;
-                const char* s = lua_tolstring(L, -1, &len);
-                isarray = (s != NULL && strncmp(s, "array", 6) == 0);
-                has = true;
-            }
-            lua_pop(L, 2); // []
-        }
+			// [metatable]
+			lua_getfield(L, -1, JSON_TABLE_TYPE_FIELD); // [metatable, metatable.__jsontype]
+			if (lua_isstring(L, -1))
+			{
+				size_t len;
+				const char* s = lua_tolstring(L, -1, &len);
+				isarray = (s != NULL && strncmp(s, "array", 6) == 0);
+				has = true;
+			}
+			lua_pop(L, 2); // []
+		}
 
 		return has;
 	}
@@ -472,9 +472,9 @@ private:
 			return;
 		case LUA_TTABLE:
 			return encodeTable(L, writer, idx, depth + 1);
-        case LUA_TNIL:
-            writer->Null();
-            return;
+		case LUA_TNIL:
+			writer->Null();
+			return;
 		case LUA_TFUNCTION:
 			if (isJsonNull(L, idx))
 			{
@@ -487,7 +487,7 @@ private:
 		case LUA_TTHREAD: // fall thought
 		case LUA_TNONE: // fall thought
 		default:
-            luaL_error(L, "value type : %s", lua_typename(L, t));
+			luaL_error(L, "value type : %s", lua_typename(L, t));
 			return;
 		}
 	}
@@ -502,20 +502,20 @@ private:
 			luaL_error(L, "stack overflow");
 
 		lua_pushvalue(L, idx); // [table]
-        if (isArray(L, -1))
-        {
-            encodeArray(L, writer, depth);
-            lua_pop(L, 1); // []
-            return;
-        }
+		if (isArray(L, -1))
+		{
+			encodeArray(L, writer, depth);
+			lua_pop(L, 1); // []
+			return;
+		}
 
-        // is object.
+		// is object.
 		if (!sort_keys)
-        {
-            encodeObject(L, writer, depth);
-            lua_pop(L, 1); // []
-            return;
-        }
+		{
+			encodeObject(L, writer, depth);
+			lua_pop(L, 1); // []
+			return;
+		}
 
 		lua_pushnil(L); // [table, nil]
 		std::vector<Key> keys;
@@ -537,7 +537,7 @@ private:
 		}
 		// [table]
 		encodeObject(L, writer, depth, keys);
-        lua_pop(L, 1);
+		lua_pop(L, 1);
 	}
 
 	template<typename Writer>
@@ -601,7 +601,7 @@ private:
 			lua_pop(L, 1); // [table]
 		}
 		writer->EndArray();
-        // [table]
+		// [table]
 	}
 
 public:
@@ -624,16 +624,16 @@ public:
 
 static int json_encode(lua_State* L)
 {
-    try{
-        Encoder encode(L, 2);
-    	StringBuffer s;
-        encode.encode(L, &s, 1);
-        lua_pushlstring(L, s.GetString(), s.GetSize());
-        return 1;
-    }
-    catch (...) {
-        luaL_error(L, "error while encoding");
-    }
+	try{
+		Encoder encode(L, 2);
+		StringBuffer s;
+		encode.encode(L, &s, 1);
+		lua_pushlstring(L, s.GetString(), s.GetSize());
+		return 1;
+	}
+	catch (...) {
+		luaL_error(L, "error while encoding");
+	}
 	return 0;
 }
 
@@ -642,7 +642,7 @@ static int json_dump(lua_State* L)
 {
 	Encoder encoder(L, 3);
 
-    const char* filename = luaL_checkstring(L, 2);
+	const char* filename = luaL_checkstring(L, 2);
 	FILE* fp = openForWrite(filename);
 	if (fp == NULL)
 		luaL_error(L, "error while open file: %s", filename);
@@ -652,7 +652,7 @@ static int json_dump(lua_State* L)
 	FileWriteStream fs(fp, &buffer.front(), sz);
 	encoder.encode(L, &fs, 1);
 	fclose(fp);
-    return 0;
+	return 0;
 }
 
 
