@@ -301,6 +301,13 @@ A string that is `"rapidjson"`.
 
 The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
+## Release Steps
+
+1. Pass all unit tests.
+2. Update version in rapidjson-*.*.*-1.rockspec and update the name of the rockspec file.
+3. Tag source code with that version (*.*.*), and push.
+4. `luarocks upload rapidjson-*.*.*-1.rockspec`
+
 ## Changelog
 
 ### 0.4.0
