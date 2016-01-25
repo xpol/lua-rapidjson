@@ -74,10 +74,10 @@ describe('rapidjson.encode()', function()
   end)
 
   it('should accept max_depth options', function()
-    --local a = {b={c={e={}}}}
-    --assert.has_error(function()
-    --  rapidjson.encode(a, {max_depth=2})
-    --end)
+    local a = {b={c={e={}}}}
+    assert.has_error(function()
+      rapidjson.encode(a, {max_depth=2})
+    end)
   end)
 
   it('should parse escaped characters', function()
