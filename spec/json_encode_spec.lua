@@ -65,7 +65,7 @@ describe('rapidjson.encode()', function()
     )
   end)
 
-  it('should detect avoid circular reference', function()
+  it('should detect circular reference', function()
     local a = {}
     a.b = a
     assert.has_error(function()

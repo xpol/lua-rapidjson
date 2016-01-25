@@ -312,6 +312,7 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 ### 0.4.0
 
+* Checks circular reference when encoding tables.
 * A table is encoded as json array if:
   - have meta field `__jsontype` set to `'array'`.
   - don't have meta filed `__jsontype` and length > 0.
