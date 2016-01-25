@@ -352,8 +352,8 @@ struct Key
 class Encoder {
 	bool pretty;
 	bool sort_keys;
-    int max_depth;
-    static const int MAX_DEPTH_DEFAULT = 64;
+	int max_depth;
+	static const int MAX_DEPTH_DEFAULT = 128;
 public:
 	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false), max_depth(MAX_DEPTH_DEFAULT)
 	{
@@ -495,8 +495,12 @@ private:
 	template<typename Writer>
 	void encodeTable(lua_State* L, Writer* writer, int idx, int depth)
 	{
-        if (depth > max_depth)
-            return;//luaL_error(L, "nested too depth");
+		if (depth > max_depth)
+			luaL_error(L, "nested too depth");
+
+		if (!lua_checkstack(L, 4)) // requires at least 4 slots in stack: table, key, value, key
+			luaL_error(L, "stack overflow");
+
 		lua_pushvalue(L, idx); // [table]
         if (isArray(L, -1))
         {
