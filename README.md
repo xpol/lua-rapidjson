@@ -310,6 +310,14 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 ## Changelog
 
+### 0.4.2
+
+* Update RapidJSON to latest HEAD version.
+
+### 0.4.1
+
+* Fixes Windows dll.
+
 ### 0.4.0
 
 * Checks circular reference when encoding tables.
