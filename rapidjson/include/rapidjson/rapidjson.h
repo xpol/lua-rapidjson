@@ -178,9 +178,9 @@
 
 #ifndef RAPIDJSON_FORCEINLINE
 //!@cond RAPIDJSON_HIDDEN_FROM_DOXYGEN
-#if defined(_MSC_VER) && !defined(NDEBUG)
+#if defined(_MSC_VER) && defined(NDEBUG)
 #define RAPIDJSON_FORCEINLINE __forceinline
-#elif defined(__GNUC__) && __GNUC__ >= 4 && !defined(NDEBUG)
+#elif defined(__GNUC__) && __GNUC__ >= 4 && defined(NDEBUG)
 #define RAPIDJSON_FORCEINLINE __attribute__((always_inline))
 #else
 #define RAPIDJSON_FORCEINLINE
@@ -410,6 +410,35 @@ RAPIDJSON_NAMESPACE_END
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// RAPIDJSON_LIKELY, RAPIDJSON_UNLIKELY
+
+//! Compiler branching hint for expression with high probability to be true.
+/*!
+    \ingroup RAPIDJSON_CONFIG
+    \param x Boolean expression likely to be true.
+*/
+#ifndef RAPIDJSON_LIKELY
+#if defined(__GNUC__) || defined(__clang__)
+#define RAPIDJSON_LIKELY(x) __builtin_expect(!!(x), 1)
+#else
+#define RAPIDJSON_LIKELY(x) x
+#endif
+#endif
+
+//! Compiler branching hint for expression with low probability to be true.
+/*!
+    \ingroup RAPIDJSON_CONFIG
+    \param x Boolean expression unlikely to be true.
+*/
+#ifndef RAPIDJSON_UNLIKELY
+#if defined(__GNUC__) || defined(__clang__)
+#define RAPIDJSON_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+#define RAPIDJSON_UNLIKELY(x) x
+#endif
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // Helpers
 
 //!@cond RAPIDJSON_HIDDEN_FROM_DOXYGEN
@@ -585,11 +614,25 @@ struct StreamTraits {
     enum { copyOptimization = 0 };
 };
 
+//! Reserve n characters for writing to a stream.
+template<typename Stream>
+inline void PutReserve(Stream& stream, size_t count) {
+    (void)stream;
+    (void)count;
+}
+
+//! Write character to a stream, presuming buffer is reserved.
+template<typename Stream>
+inline void PutUnsafe(Stream& stream, typename Stream::Ch c) {
+    stream.Put(c);
+}
+
 //! Put N copies of a character to a stream.
 template<typename Stream, typename Ch>
 inline void PutN(Stream& stream, Ch c, size_t n) {
+    PutReserve<Stream>(stream, n);
     for (size_t i = 0; i < n; i++)
-        stream.Put(c);
+        PutUnsafe(stream, c);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

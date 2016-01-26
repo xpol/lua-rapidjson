@@ -18,6 +18,11 @@
 #include "../rapidjson.h"
 #include "swap.h"
 
+#if defined(__clang__)
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(c++98-compat)
+#endif
+
 RAPIDJSON_NAMESPACE_BEGIN
 namespace internal {
 
@@ -108,11 +113,21 @@ public:
     // Optimization note: try to minimize the size of this function for force inline.
     // Expansion is run very infrequently, so it is moved to another (probably non-inline) function.
     template<typename T>
-    RAPIDJSON_FORCEINLINE T* Push(size_t count = 1) {
+    RAPIDJSON_FORCEINLINE void Reserve(size_t count = 1) {
          // Expand the stack if needed
-        if (stackTop_ + sizeof(T) * count >= stackEnd_)
+        if (RAPIDJSON_UNLIKELY(stackTop_ + sizeof(T) * count > stackEnd_))
             Expand<T>(count);
+    }
 
+    template<typename T>
+    RAPIDJSON_FORCEINLINE T* Push(size_t count = 1) {
+        Reserve<T>(count);
+        return PushUnsafe<T>(count);
+    }
+
+    template<typename T>
+    RAPIDJSON_FORCEINLINE T* PushUnsafe(size_t count = 1) {
+        RAPIDJSON_ASSERT(stackTop_ + sizeof(T) * count <= stackEnd_);
         T* ret = reinterpret_cast<T*>(stackTop_);
         stackTop_ += sizeof(T) * count;
         return ret;
@@ -192,5 +207,9 @@ private:
 
 } // namespace internal
 RAPIDJSON_NAMESPACE_END
+
+#if defined(__clang__)
+RAPIDJSON_DIAG_POP
+#endif
 
 #endif // RAPIDJSON_STACK_H_
