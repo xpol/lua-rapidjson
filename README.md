@@ -317,6 +317,7 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 ### 0.4.3
 
 * CMakeLists.txt supports command line defined `RAPIDJSON_INCLUDE_DIRS` to specified RapidJSON include directory.
+* Keeps only necessary RapidJSON header files and docs make the rock much smaller.
 
 ### 0.4.2
 
