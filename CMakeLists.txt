@@ -36,7 +36,7 @@ if (NOT LUA_INCLUDE_DIR)
 endif()
 
 if (NOT RAPIDJSON_INCLUDE_DIRS)
-  set(RAPIDJSON_INCLUDE_DIRS=rapidjson/include)
+  set(RAPIDJSON_INCLUDE_DIRS rapidjson/include)
 endif()
 
 include_directories(${LUA_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
