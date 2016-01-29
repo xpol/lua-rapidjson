@@ -17,6 +17,10 @@ bug report and feature request.
 
     luarocks install rapidjson
 
+or if you like to use your own version of RapidJSON, use:
+
+    luarocks install rapidjson RAPIDJSON_INCLUDE_DIRS=path/to/rapidjson/include/dir
+
 ```Lua
 local rapidjson = require('rapidjson')
 
@@ -309,6 +313,10 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 4. `luarocks upload rapidjson-*.*.*-1.rockspec`
 
 ## Changelog
+
+### 0.4.3
+
+* CMakeLists.txt supports command line defined `RAPIDJSON_INCLUDE_DIRS` to specified RapidJSON include directory.
 
 ### 0.4.2
 
