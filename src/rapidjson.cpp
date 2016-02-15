@@ -333,17 +333,6 @@ static int json_load(lua_State* L)
 	return n;
 }
 
-struct stack_checker{
-	stack_checker(lua_State* state) : top(lua_gettop(state)), L(state) {}
-	~stack_checker() {
-		assert(lua_gettop(L) == top);
-	}
-	int top;
-private:
-	lua_State* L;
-};
-
-
 struct Key
 {
 	Key(const char* k, SizeType l) : key(k), size(l) {}
