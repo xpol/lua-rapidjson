@@ -314,6 +314,15 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 ## Changelog
 
+### 0.4.5
+
+* Checks encoding error for float point numbers.
+* RapidJSON compiling turn: use release config and turn SIMD on if supported.
+
+### 0.4.4
+
+* Fixes build and test errors introduced in 0.4.3.
+
 ### 0.4.3
 
 * CMakeLists.txt supports command line defined `RAPIDJSON_INCLUDE_DIRS` to specified RapidJSON include directory.
