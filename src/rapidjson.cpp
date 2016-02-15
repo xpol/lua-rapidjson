@@ -472,7 +472,10 @@ private:
 			if (isInteger(L, idx, &integer))
 				writer->Int64(integer);
 			else
-				writer->Double(lua_tonumber(L, idx));
+            {
+                if (!writer->Double(lua_tonumber(L, idx)))
+                    luaL_error(L, "error while encode double value.");
+            }
 			return;
 		case LUA_TSTRING:
 			s = lua_tolstring(L, idx, &len);
