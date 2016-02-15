@@ -32,6 +32,10 @@ describe('rapidjson.encode()', function()
     assert.has_error(function()
       rapidjson.encode(io.output())
     end)
+
+    assert.has_error(function()
+      rapidjson.encode(0/0)
+    end)
   end)
 
 
