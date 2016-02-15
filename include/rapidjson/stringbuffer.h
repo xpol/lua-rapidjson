@@ -15,7 +15,8 @@
 #ifndef RAPIDJSON_STRINGBUFFER_H_
 #define RAPIDJSON_STRINGBUFFER_H_
 
-#include "rapidjson.h"
+#include "stream.h"
+#include "internal/stack.h"
 
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
 #include <utility> // std::move
@@ -66,6 +67,7 @@ public:
 
     void Reserve(size_t count) { stack_.template Reserve<Ch>(count); }
     Ch* Push(size_t count) { return stack_.template Push<Ch>(count); }
+    Ch* PushUnsafe(size_t count) { return stack_.template PushUnsafe<Ch>(count); }
     void Pop(size_t count) { stack_.template Pop<Ch>(count); }
 
     const Ch* GetString() const {

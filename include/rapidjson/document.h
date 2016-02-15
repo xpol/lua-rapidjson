@@ -486,7 +486,7 @@ public:
      */
 #ifndef RAPIDJSON_DOXYGEN_RUNNING // hide SFINAE from Doxygen
     template <typename T>
-    explicit GenericValue(T b, RAPIDJSON_ENABLEIF((internal::IsSame<T,bool>))) RAPIDJSON_NOEXCEPT
+    explicit GenericValue(T b, RAPIDJSON_ENABLEIF((internal::IsSame<bool, T>))) RAPIDJSON_NOEXCEPT  // See #472
 #else
     explicit GenericValue(bool b) RAPIDJSON_NOEXCEPT
 #endif
@@ -787,6 +787,37 @@ public:
     bool IsUint64() const { return (flags_ & kUint64Flag) != 0; }
     bool IsDouble() const { return (flags_ & kDoubleFlag) != 0; }
     bool IsString() const { return (flags_ & kStringFlag) != 0; }
+
+    // Checks whether a number can be losslessly converted to a double.
+    bool IsLosslessDouble() const {
+        if (!IsNumber()) return false;
+        if (IsUint64()) {
+            uint64_t u = GetUint64();
+            volatile double d = static_cast<double>(u);
+            return static_cast<uint64_t>(d) == u;
+        }
+        if (IsInt64()) {
+            int64_t i = GetInt64();
+            volatile double d = static_cast<double>(i);
+            return static_cast< int64_t>(d) == i;
+        }
+        return true; // double, int, uint are always lossless
+    }
+
+    // Checks whether a number is a float (possible lossy).
+    bool IsFloat() const  {
+        if ((flags_ & kDoubleFlag) == 0)
+            return false;
+        double d = GetDouble();
+        return d >= -3.4028234e38 && d <= 3.4028234e38;
+    }
+    // Checks whether a number can be losslessly converted to a float.
+    bool IsLosslessFloat() const {
+        if (!IsNumber()) return false;
+        double a = GetDouble();
+        double b = static_cast<double>(static_cast<float>(a));
+        return a >= b && a <= b;    // Prevent -Wfloat-equal
+    }
 
     //@}
 
@@ -1445,6 +1476,9 @@ public:
     int64_t GetInt64() const    { RAPIDJSON_ASSERT(flags_ & kInt64Flag); return data_.n.i64; }
     uint64_t GetUint64() const  { RAPIDJSON_ASSERT(flags_ & kUint64Flag); return data_.n.u64; }
 
+    //! Get the value as double type.
+    /*! \note If the value is 64-bit integer type, it may lose precision. Use \c IsLosslessDouble() to check whether the converison is lossless.
+    */
     double GetDouble() const {
         RAPIDJSON_ASSERT(IsNumber());
         if ((flags_ & kDoubleFlag) != 0)                return data_.n.d;   // exact type, no conversion.
@@ -1454,11 +1488,20 @@ public:
         RAPIDJSON_ASSERT((flags_ & kUint64Flag) != 0);  return static_cast<double>(data_.n.u64); // uint64_t -> double (may lose precision)
     }
 
+    //! Get the value as float type.
+    /*! \note If the value is 64-bit integer type, it may lose precision. Use \c IsLosslessFloat() to check whether the converison is lossless.
+    */
+    float GetFloat() const {
+        RAPIDJSON_ASSERT(IsFloat());
+        return static_cast<float>(GetDouble());
+    }
+
     GenericValue& SetInt(int i)             { this->~GenericValue(); new (this) GenericValue(i);    return *this; }
     GenericValue& SetUint(unsigned u)       { this->~GenericValue(); new (this) GenericValue(u);    return *this; }
     GenericValue& SetInt64(int64_t i64)     { this->~GenericValue(); new (this) GenericValue(i64);  return *this; }
     GenericValue& SetUint64(uint64_t u64)   { this->~GenericValue(); new (this) GenericValue(u64);  return *this; }
     GenericValue& SetDouble(double d)       { this->~GenericValue(); new (this) GenericValue(d);    return *this; }
+    GenericValue& SetFloat(float f)         { this->~GenericValue(); new (this) GenericValue(f);    return *this; }
 
     //@}
 
@@ -1535,22 +1578,22 @@ public:
         case kTrueType:     return handler.Bool(true);
 
         case kObjectType:
-            if (!handler.StartObject())
+            if (RAPIDJSON_UNLIKELY(!handler.StartObject()))
                 return false;
             for (ConstMemberIterator m = MemberBegin(); m != MemberEnd(); ++m) {
                 RAPIDJSON_ASSERT(m->name.IsString()); // User may change the type of name by MemberIterator.
-                if (!handler.Key(m->name.GetString(), m->name.GetStringLength(), (m->name.flags_ & kCopyFlag) != 0))
+                if (RAPIDJSON_UNLIKELY(!handler.Key(m->name.GetString(), m->name.GetStringLength(), (m->name.flags_ & kCopyFlag) != 0)))
                     return false;
-                if (!m->value.Accept(handler))
+                if (RAPIDJSON_UNLIKELY(!m->value.Accept(handler)))
                     return false;
             }
             return handler.EndObject(data_.o.size);
 
         case kArrayType:
-            if (!handler.StartArray())
+            if (RAPIDJSON_UNLIKELY(!handler.StartArray()))
                 return false;
-            for (GenericValue* v = data_.a.elements; v != data_.a.elements + data_.a.size; ++v)
-                if (!v->Accept(handler))
+            for (const GenericValue* v = data_.a.elements; v != data_.a.elements + data_.a.size; ++v)
+                if (RAPIDJSON_UNLIKELY(!v->Accept(handler)))
                     return false;
             return handler.EndArray(data_.a.size);
     
@@ -1559,11 +1602,11 @@ public:
     
         default:
             RAPIDJSON_ASSERT(GetType() == kNumberType);
-            if (IsInt())            return handler.Int(data_.n.i.i);
+            if (IsDouble())         return handler.Double(data_.n.d);
+            else if (IsInt())       return handler.Int(data_.n.i.i);
             else if (IsUint())      return handler.Uint(data_.n.u.u);
             else if (IsInt64())     return handler.Int64(data_.n.i64);
-            else if (IsUint64())    return handler.Uint64(data_.n.u64);
-            else                    return handler.Double(data_.n.d);
+            else                    return handler.Uint64(data_.n.u64);
         }
     }
 
@@ -1869,6 +1912,21 @@ public:
      */
     friend inline void swap(GenericDocument& a, GenericDocument& b) RAPIDJSON_NOEXCEPT { a.Swap(b); }
 
+    //! Populate this document by a generator which produces SAX events.
+    /*! \tparam Generator A functor with <tt>bool f(Handler)</tt> prototype.
+        \param g Generator functor which sends SAX events to the parameter.
+        \return The document itself for fluent API.
+    */
+    template <typename Generator>
+    GenericDocument& Populate(Generator& g) {
+        ClearStackOnExit scope(*this);
+        if (g(*this)) {
+            RAPIDJSON_ASSERT(stack_.GetSize() == sizeof(ValueType)); // Got one and only one root object
+            ValueType::operator=(*stack_.template Pop<ValueType>(1));// Move value from stack to document
+        }
+        return *this;
+    }
+
     //!@name Parse from stream
     //!@{
 
@@ -2017,9 +2075,10 @@ private:
     };
 
     // callers of the following private Handler functions
-    template <typename,typename,typename> friend class GenericReader; // for parsing
+    // template <typename,typename,typename> friend class GenericReader; // for parsing
     template <typename, typename> friend class GenericValue; // for deep copying
 
+public:
     // Implementation of Handler
     bool Null() { new (stack_.template Push<ValueType>()) ValueType(); return true; }
     bool Bool(bool b) { new (stack_.template Push<ValueType>()) ValueType(b); return true; }

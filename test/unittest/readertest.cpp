@@ -418,7 +418,7 @@ TEST(Reader, ParseNumber_NormalPrecisionError) {
 }
 
 TEST(Reader, ParseNumber_Error) {
-#define TEST_NUMBER_ERROR(errorCode, str) \
+#define TEST_NUMBER_ERROR(errorCode, str, errorOffset, streamPos) \
     { \
         char buffer[1001]; \
         sprintf(buffer, "%s", str); \
@@ -427,6 +427,8 @@ TEST(Reader, ParseNumber_Error) {
         Reader reader; \
         EXPECT_FALSE(reader.Parse(s, h)); \
         EXPECT_EQ(errorCode, reader.GetParseErrorCode());\
+        EXPECT_EQ(errorOffset, reader.GetErrorOffset());\
+        EXPECT_EQ(streamPos, s.Tell());\
     }
 
     // Number too big to be stored in double.
@@ -436,17 +438,17 @@ TEST(Reader, ParseNumber_Error) {
         for (int i = 1; i < 310; i++)
             n1e309[i] = '0';
         n1e309[310] = '\0';
-        TEST_NUMBER_ERROR(kParseErrorNumberTooBig, n1e309);
+        TEST_NUMBER_ERROR(kParseErrorNumberTooBig, n1e309, 0, 309);
     }
-    TEST_NUMBER_ERROR(kParseErrorNumberTooBig, "1e309");
+    TEST_NUMBER_ERROR(kParseErrorNumberTooBig, "1e309", 0, 5);
 
     // Miss fraction part in number.
-    TEST_NUMBER_ERROR(kParseErrorNumberMissFraction, "1.");
-    TEST_NUMBER_ERROR(kParseErrorNumberMissFraction, "1.a");
+    TEST_NUMBER_ERROR(kParseErrorNumberMissFraction, "1.", 2, 2);
+    TEST_NUMBER_ERROR(kParseErrorNumberMissFraction, "1.a", 2, 2);
 
     // Miss exponent in number.
-    TEST_NUMBER_ERROR(kParseErrorNumberMissExponent, "1e");
-    TEST_NUMBER_ERROR(kParseErrorNumberMissExponent, "1e_");
+    TEST_NUMBER_ERROR(kParseErrorNumberMissExponent, "1e", 2, 2);
+    TEST_NUMBER_ERROR(kParseErrorNumberMissExponent, "1e_", 2, 2);
 
 #undef TEST_NUMBER_ERROR
 }
@@ -604,8 +606,16 @@ ParseErrorCode TestString(const typename Encoding::Ch* str) {
 }
 
 TEST(Reader, ParseString_Error) {
-#define TEST_STRING_ERROR(errorCode, str)\
-        EXPECT_EQ(errorCode, TestString<UTF8<> >(str))
+#define TEST_STRING_ERROR(errorCode, str, errorOffset, streamPos)\
+{\
+    GenericStringStream<UTF8<> > s(str);\
+    BaseReaderHandler<UTF8<> > h;\
+    GenericReader<UTF8<> , UTF8<> > reader;\
+    reader.Parse<kParseValidateEncodingFlag>(s, h);\
+    EXPECT_EQ(errorCode, reader.GetParseErrorCode());\
+    EXPECT_EQ(errorOffset, reader.GetErrorOffset());\
+    EXPECT_EQ(streamPos, s.Tell());\
+}
 
 #define ARRAY(...) { __VA_ARGS__ }
 #define TEST_STRINGENCODING_ERROR(Encoding, TargetEncoding, utype, array) \
@@ -622,21 +632,21 @@ TEST(Reader, ParseString_Error) {
     }
 
     // Invalid escape character in string.
-    TEST_STRING_ERROR(kParseErrorStringEscapeInvalid, "[\"\\a\"]");
+    TEST_STRING_ERROR(kParseErrorStringEscapeInvalid, "[\"\\a\"]", 2, 3);
 
     // Incorrect hex digit after \\u escape in string.
-    TEST_STRING_ERROR(kParseErrorStringUnicodeEscapeInvalidHex, "[\"\\uABCG\"]");
+    TEST_STRING_ERROR(kParseErrorStringUnicodeEscapeInvalidHex, "[\"\\uABCG\"]", 2, 7);
 
     // Quotation in \\u escape in string (Issue #288)
-    TEST_STRING_ERROR(kParseErrorStringUnicodeEscapeInvalidHex, "[\"\\uaaa\"]");
-    TEST_STRING_ERROR(kParseErrorStringUnicodeEscapeInvalidHex, "[\"\\uD800\\uFFF\"]");
+    TEST_STRING_ERROR(kParseErrorStringUnicodeEscapeInvalidHex, "[\"\\uaaa\"]", 2, 7);
+    TEST_STRING_ERROR(kParseErrorStringUnicodeEscapeInvalidHex, "[\"\\uD800\\uFFF\"]", 2, 13);
 
     // The surrogate pair in string is invalid.
-    TEST_STRING_ERROR(kParseErrorStringUnicodeSurrogateInvalid, "[\"\\uD800X\"]");
-    TEST_STRING_ERROR(kParseErrorStringUnicodeSurrogateInvalid, "[\"\\uD800\\uFFFF\"]");
+    TEST_STRING_ERROR(kParseErrorStringUnicodeSurrogateInvalid, "[\"\\uD800X\"]", 2, 8);
+    TEST_STRING_ERROR(kParseErrorStringUnicodeSurrogateInvalid, "[\"\\uD800\\uFFFF\"]", 2, 14);
 
     // Missing a closing quotation mark in string.
-    TEST_STRING_ERROR(kParseErrorStringMissQuotationMark, "[\"Test]");
+    TEST_STRING_ERROR(kParseErrorStringMissQuotationMark, "[\"Test]", 7, 7);
 
     // http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt
 
@@ -659,7 +669,18 @@ TEST(Reader, ParseString_Error) {
         char e[] = { '[', '\"', 0, ' ', '\"', ']', '\0' };
         for (unsigned c = 0xC0u; c <= 0xFFu; c++) {
             e[2] = static_cast<char>(c);
-            TEST_STRING_ERROR(kParseErrorStringInvalidEncoding, e);
+            int streamPos;
+            if (c <= 0xC1u)
+                streamPos = 3; // 0xC0 - 0xC1
+            else if (c <= 0xDFu)
+                streamPos = 4; // 0xC2 - 0xDF
+            else if (c <= 0xEFu)
+                streamPos = 5; // 0xE0 - 0xEF
+            else if (c <= 0xF4u)
+                streamPos = 6; // 0xF0 - 0xF4
+            else
+                streamPos = 3; // 0xF5 - 0xFF
+            TEST_STRING_ERROR(kParseErrorStringInvalidEncoding, e, 2, streamPos);
         }
     }
 
@@ -738,8 +759,9 @@ TEST(Reader, ParseArray) {
 }
 
 TEST(Reader, ParseArray_Error) {
-#define TEST_ARRAY_ERROR(errorCode, str) \
+#define TEST_ARRAY_ERROR(errorCode, str, errorOffset) \
     { \
+        int streamPos = errorOffset; \
         char buffer[1001]; \
         strncpy(buffer, str, 1000); \
         InsituStringStream s(buffer); \
@@ -747,12 +769,14 @@ TEST(Reader, ParseArray_Error) {
         GenericReader<UTF8<>, UTF8<>, CrtAllocator> reader; \
         EXPECT_FALSE(reader.Parse(s, h)); \
         EXPECT_EQ(errorCode, reader.GetParseErrorCode());\
+        EXPECT_EQ(errorOffset, reader.GetErrorOffset());\
+        EXPECT_EQ(streamPos, s.Tell());\
     }
 
     // Missing a comma or ']' after an array element.
-    TEST_ARRAY_ERROR(kParseErrorArrayMissCommaOrSquareBracket, "[1");
-    TEST_ARRAY_ERROR(kParseErrorArrayMissCommaOrSquareBracket, "[1}");
-    TEST_ARRAY_ERROR(kParseErrorArrayMissCommaOrSquareBracket, "[1 2]");
+    TEST_ARRAY_ERROR(kParseErrorArrayMissCommaOrSquareBracket, "[1", 2);
+    TEST_ARRAY_ERROR(kParseErrorArrayMissCommaOrSquareBracket, "[1}", 2);
+    TEST_ARRAY_ERROR(kParseErrorArrayMissCommaOrSquareBracket, "[1 2]", 3);
 
 #undef TEST_ARRAY_ERROR
 }
@@ -899,8 +923,9 @@ TEST(Reader, ParseInsituIterative_MultipleRoot) {
     TestInsituMultipleRoot<kParseIterativeFlag | kParseStopWhenDoneFlag>();
 }
 
-#define TEST_ERROR(errorCode, str) \
+#define TEST_ERROR(errorCode, str, errorOffset) \
     { \
+        int streamPos = errorOffset; \
         char buffer[1001]; \
         strncpy(buffer, str, 1000); \
         InsituStringStream s(buffer); \
@@ -908,48 +933,50 @@ TEST(Reader, ParseInsituIterative_MultipleRoot) {
         Reader reader; \
         EXPECT_FALSE(reader.Parse(s, h)); \
         EXPECT_EQ(errorCode, reader.GetParseErrorCode());\
+        EXPECT_EQ(errorOffset, reader.GetErrorOffset());\
+        EXPECT_EQ(streamPos, s.Tell());\
     }
 
 TEST(Reader, ParseDocument_Error) {
     // The document is empty.
-    TEST_ERROR(kParseErrorDocumentEmpty, "");
-    TEST_ERROR(kParseErrorDocumentEmpty, " ");
-    TEST_ERROR(kParseErrorDocumentEmpty, " \n");
+    TEST_ERROR(kParseErrorDocumentEmpty, "", 0);
+    TEST_ERROR(kParseErrorDocumentEmpty, " ", 1);
+    TEST_ERROR(kParseErrorDocumentEmpty, " \n", 2);
 
     // The document root must not follow by other values.
-    TEST_ERROR(kParseErrorDocumentRootNotSingular, "[] 0");
-    TEST_ERROR(kParseErrorDocumentRootNotSingular, "{} 0");
-    TEST_ERROR(kParseErrorDocumentRootNotSingular, "null []");
-    TEST_ERROR(kParseErrorDocumentRootNotSingular, "0 {}");
+    TEST_ERROR(kParseErrorDocumentRootNotSingular, "[] 0", 3);
+    TEST_ERROR(kParseErrorDocumentRootNotSingular, "{} 0", 3);
+    TEST_ERROR(kParseErrorDocumentRootNotSingular, "null []", 5);
+    TEST_ERROR(kParseErrorDocumentRootNotSingular, "0 {}", 2);
 }
 
 TEST(Reader, ParseValue_Error) {
     // Invalid value.
-    TEST_ERROR(kParseErrorValueInvalid, "nulL");
-    TEST_ERROR(kParseErrorValueInvalid, "truE");
-    TEST_ERROR(kParseErrorValueInvalid, "falsE");
-    TEST_ERROR(kParseErrorValueInvalid, "a]");
-    TEST_ERROR(kParseErrorValueInvalid, ".1");
+    TEST_ERROR(kParseErrorValueInvalid, "nulL", 3);
+    TEST_ERROR(kParseErrorValueInvalid, "truE", 3);
+    TEST_ERROR(kParseErrorValueInvalid, "falsE", 4);
+    TEST_ERROR(kParseErrorValueInvalid, "a]", 0);
+    TEST_ERROR(kParseErrorValueInvalid, ".1", 0);
 }
 
 TEST(Reader, ParseObject_Error) {
     // Missing a name for object member.
-    TEST_ERROR(kParseErrorObjectMissName, "{1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{null:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{true:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{false:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{1:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{[]:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{{}:1}");
-    TEST_ERROR(kParseErrorObjectMissName, "{xyz:1}");
+    TEST_ERROR(kParseErrorObjectMissName, "{1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{null:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{true:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{false:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{1:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{[]:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{{}:1}", 1);
+    TEST_ERROR(kParseErrorObjectMissName, "{xyz:1}", 1);
 
     // Missing a colon after a name of object member.
-    TEST_ERROR(kParseErrorObjectMissColon, "{\"a\" 1}");
-    TEST_ERROR(kParseErrorObjectMissColon, "{\"a\",1}");
+    TEST_ERROR(kParseErrorObjectMissColon, "{\"a\" 1}", 5);
+    TEST_ERROR(kParseErrorObjectMissColon, "{\"a\",1}", 4);
 
     // Must be a comma or '}' after an object member
-    TEST_ERROR(kParseErrorObjectMissCommaOrCurlyBracket, "{\"a\":1]");
+    TEST_ERROR(kParseErrorObjectMissCommaOrCurlyBracket, "{\"a\":1]", 6);
 
     // This tests that MemoryStream is checking the length in Peek().
     {
@@ -1069,6 +1096,7 @@ TEST(Reader, Parse_IStreamWrapper_StringStream) {
 
 #define TESTERRORHANDLING(text, errorCode, offset)\
 {\
+    int streamPos = offset; \
     StringStream json(text); \
     BaseReaderHandler<> handler; \
     Reader reader; \
@@ -1076,6 +1104,7 @@ TEST(Reader, Parse_IStreamWrapper_StringStream) {
     EXPECT_TRUE(reader.HasParseError()); \
     EXPECT_EQ(errorCode, reader.GetParseErrorCode()); \
     EXPECT_EQ(offset, reader.GetErrorOffset()); \
+    EXPECT_EQ(streamPos, json.Tell()); \
 }
 
 TEST(Reader, IterativeParsing_ErrorHandling) {
@@ -1089,10 +1118,10 @@ TEST(Reader, IterativeParsing_ErrorHandling) {
     TESTERRORHANDLING("{\"a\"}", kParseErrorObjectMissColon, 4u);
     TESTERRORHANDLING("{\"a\": 1", kParseErrorObjectMissCommaOrCurlyBracket, 7u);
     TESTERRORHANDLING("[1 2 3]", kParseErrorArrayMissCommaOrSquareBracket, 3u);
-    TESTERRORHANDLING("{\"a: 1", kParseErrorStringMissQuotationMark, 5u);
+    TESTERRORHANDLING("{\"a: 1", kParseErrorStringMissQuotationMark, 6u);
 
     // Any JSON value can be a valid root element in RFC7159.
-    TESTERRORHANDLING("\"ab", kParseErrorStringMissQuotationMark, 2u);
+    TESTERRORHANDLING("\"ab", kParseErrorStringMissQuotationMark, 3u);
     TESTERRORHANDLING("truE", kParseErrorValueInvalid, 3u);
     TESTERRORHANDLING("False", kParseErrorValueInvalid, 0u);
     TESTERRORHANDLING("true, false", kParseErrorDocumentRootNotSingular, 4u);
@@ -1451,6 +1480,26 @@ TEST(Reader, EofAfterOneLineComment) {
 
 TEST(Reader, IncompleteMultilineComment) {
     const char* json = "{\"hello\" : \"world\" /* EOF is here -->\0 */}";
+
+    StringStream s(json);
+    ParseObjectHandler h;
+    Reader reader;
+    EXPECT_FALSE(reader.Parse<kParseCommentsFlag>(s, h));
+    EXPECT_EQ(kParseErrorUnspecificSyntaxError, reader.GetParseErrorCode());
+}
+
+TEST(Reader, IncompleteMultilineComment2) {
+    const char* json = "{\"hello\" : \"world\" /* *\0 */}";
+
+    StringStream s(json);
+    ParseObjectHandler h;
+    Reader reader;
+    EXPECT_FALSE(reader.Parse<kParseCommentsFlag>(s, h));
+    EXPECT_EQ(kParseErrorUnspecificSyntaxError, reader.GetParseErrorCode());
+}
+
+TEST(Reader, UnrecognizedComment) {
+    const char* json = "{\"hello\" : \"world\" /! }";
 
     StringStream s(json);
     ParseObjectHandler h;

@@ -579,6 +579,54 @@ TEST(Value, Double) {
     EXPECT_NEAR(56.78, z.GetDouble(), 0.0);
 }
 
+TEST(Value, Float) {
+    // Constructor with double
+    Value x(12.34f);
+    EXPECT_EQ(kNumberType, x.GetType());
+    EXPECT_NEAR(12.34f, x.GetFloat(), 0.0);
+    EXPECT_TRUE(x.IsNumber());
+    EXPECT_TRUE(x.IsDouble());
+    EXPECT_TRUE(x.IsFloat());
+
+    EXPECT_FALSE(x.IsInt());
+    EXPECT_FALSE(x.IsNull());
+    EXPECT_FALSE(x.IsBool());
+    EXPECT_FALSE(x.IsFalse());
+    EXPECT_FALSE(x.IsTrue());
+    EXPECT_FALSE(x.IsString());
+    EXPECT_FALSE(x.IsObject());
+    EXPECT_FALSE(x.IsArray());
+
+    // SetFloat()
+    Value z;
+    z.SetFloat(12.34f);
+    EXPECT_NEAR(12.34f, z.GetFloat(), 0.0f);
+
+    z = 56.78f;
+    EXPECT_NEAR(56.78f, z.GetFloat(), 0.0f);
+}
+
+TEST(Value, IsLosslessDouble) {
+    EXPECT_TRUE(Value(12.34).IsLosslessDouble());
+    EXPECT_TRUE(Value(-123).IsLosslessDouble());
+    EXPECT_TRUE(Value(2147483648u).IsLosslessDouble());
+    EXPECT_TRUE(Value(static_cast<int64_t>(-RAPIDJSON_UINT64_C2(0x40000000, 0x00000000))).IsLosslessDouble());
+    EXPECT_TRUE(Value(RAPIDJSON_UINT64_C2(0xA0000000, 0x00000000)).IsLosslessDouble());
+
+    EXPECT_FALSE(Value(static_cast<int64_t>(-RAPIDJSON_UINT64_C2(0x7FFFFFFF, 0xFFFFFFFF))).IsLosslessDouble());
+    EXPECT_FALSE(Value(RAPIDJSON_UINT64_C2(0xFFFFFFFF, 0xFFFFFFFF)).IsLosslessDouble());
+}
+
+TEST(Value, IsLosslessFloat) {
+    EXPECT_TRUE(Value(12.25).IsLosslessFloat());
+    EXPECT_TRUE(Value(-123).IsLosslessFloat());
+    EXPECT_TRUE(Value(2147483648u).IsLosslessFloat());
+    EXPECT_TRUE(Value(3.4028234e38f).IsLosslessFloat());
+    EXPECT_TRUE(Value(-3.4028234e38f).IsLosslessFloat());
+    EXPECT_FALSE(Value(3.4028235e38).IsLosslessFloat());
+    EXPECT_FALSE(Value(0.3).IsLosslessFloat());
+}
+
 TEST(Value, String) {
     // Construction with const string
     Value x("Hello", 5); // literal
@@ -1383,6 +1431,67 @@ TEST(Value, Sorting) {
     EXPECT_EQ(5, a[2].GetInt());
 }
 #endif
+
+// http://stackoverflow.com/questions/35222230/
+
+static void MergeDuplicateKey(Value& v, Value::AllocatorType& a) {
+    if (v.IsObject()) {
+        // Convert all key:value into key:[value]
+        for (Value::MemberIterator itr = v.MemberBegin(); itr != v.MemberEnd(); ++itr)
+            itr->value = Value(kArrayType).Move().PushBack(itr->value, a);
+        
+        // Merge arrays if key is duplicated
+        for (Value::MemberIterator itr = v.MemberBegin(); itr != v.MemberEnd();) {
+            Value::MemberIterator itr2 = v.FindMember(itr->name);
+            if (itr != itr2) {
+                itr2->value.PushBack(itr->value[0], a);
+                itr = v.EraseMember(itr);
+            }
+            else
+                ++itr;
+        }
+
+        // Convert key:[values] back to key:value if there is only one value
+        for (Value::MemberIterator itr = v.MemberBegin(); itr != v.MemberEnd(); ++itr) {
+            if (itr->value.Size() == 1)
+                itr->value = itr->value[0];
+            MergeDuplicateKey(itr->value, a); // Recursion on the value
+        }
+    }
+    else if (v.IsArray())
+        for (Value::ValueIterator itr = v.Begin(); itr != v.End(); ++itr)
+            MergeDuplicateKey(*itr, a);
+}
+
+TEST(Value, MergeDuplicateKey) {
+    Document d;
+    d.Parse(
+        "{"
+        "    \"key1\": {"
+        "        \"a\": \"asdf\","
+        "        \"b\": \"foo\","
+        "        \"b\": \"bar\","
+        "        \"c\": \"fdas\""
+        "    }"
+        "}");
+
+    Document d2;
+    d2.Parse(
+        "{"
+        "    \"key1\": {"
+        "        \"a\": \"asdf\","
+        "        \"b\": ["
+        "            \"foo\","
+        "            \"bar\""
+        "        ],"
+        "        \"c\": \"fdas\""
+        "    }"
+        "}");
+
+    EXPECT_NE(d2, d);
+    MergeDuplicateKey(d, d.GetAllocator());
+    EXPECT_EQ(d2, d);
+}
 
 #ifdef __clang__
 RAPIDJSON_DIAG_POP
