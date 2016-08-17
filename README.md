@@ -252,6 +252,49 @@ rapidjson.dump({rapidjson.null}, 'test-pretty.json', {pretty=true})
 
 ```
 
+### rapidjson.schema_validate()
+
+Validates whether a JSON document obeys a specified JSON Schema.
+
+#### Synopsis
+
+```Lua
+object = rapidjson.schema_validate(schema, document)
+```
+
+#### Arguments
+
+**schema**:
+
+A string with the JSON Schema.
+
+**document**:
+
+The document to be validated.
+
+#### Returns
+
+Return `false` when the document doesn't validate against the schema.
+
+Return the decoded document (i.e. a Lua table) if the document validates against
+the schema.
+
+#### Errors
+
+* When the `schema` parameter isn't a valid JSON document.
+* When the `document` parameter isn't a valid JSON document.
+
+#### Examples
+
+```Lua
+local rapidjson = require('rapidjson')
+
+rapidjson.schema_validate(
+    '{ "$schema": "http://json-schema.org/draft-04/schema#", "type": "object", "properties": { "q": { "type": "string" } }, "required": [ "q" ] }',
+    '{"q": "a value"}'
+)
+```
+
 ### rapidjson.null
 
 The placeholder for null values in rapidjson.
