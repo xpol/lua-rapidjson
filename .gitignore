@@ -9,3 +9,4 @@ json.so
 json.dll
 deps/
 /*.src.rock
+rapidjson.so
