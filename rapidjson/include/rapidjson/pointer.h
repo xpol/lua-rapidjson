@@ -23,6 +23,11 @@ RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(switch-enum)
 #endif
 
+#ifdef _MSC_VER
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
+#endif
+
 RAPIDJSON_NAMESPACE_BEGIN
 
 static const SizeType kPointerInvalidIndex = ~SizeType(0);  //!< Represents an invalid index in GenericPointer::Token
@@ -762,8 +767,12 @@ private:
         tokenCount_ = rhs.tokenCount_ + extraToken;
         tokens_ = static_cast<Token *>(allocator_->Malloc(tokenCount_ * sizeof(Token) + (nameBufferSize + extraNameBufferSize) * sizeof(Ch)));
         nameBuffer_ = reinterpret_cast<Ch *>(tokens_ + tokenCount_);
-        std::memcpy(tokens_, rhs.tokens_, rhs.tokenCount_ * sizeof(Token));
-        std::memcpy(nameBuffer_, rhs.nameBuffer_, nameBufferSize * sizeof(Ch));
+        if (rhs.tokenCount_ > 0) {
+            std::memcpy(tokens_, rhs.tokens_, rhs.tokenCount_ * sizeof(Token));
+        }
+        if (nameBufferSize > 0) {
+            std::memcpy(nameBuffer_, rhs.nameBuffer_, nameBufferSize * sizeof(Ch));
+        }
 
         // Adjust pointers to name buffer
         std::ptrdiff_t diff = nameBuffer_ - rhs.nameBuffer_;
@@ -987,11 +996,11 @@ private:
             src_++;
             Ch c = 0;
             for (int j = 0; j < 2; j++) {
-                c <<= 4;
+                c = static_cast<Ch>(c << 4);
                 Ch h = *src_;
-                if      (h >= '0' && h <= '9') c += h - '0';
-                else if (h >= 'A' && h <= 'F') c += h - 'A' + 10;
-                else if (h >= 'a' && h <= 'f') c += h - 'a' + 10;
+                if      (h >= '0' && h <= '9') c = static_cast<Ch>(c + h - '0');
+                else if (h >= 'A' && h <= 'F') c = static_cast<Ch>(c + h - 'A' + 10);
+                else if (h >= 'a' && h <= 'f') c = static_cast<Ch>(c + h - 'a' + 10);
                 else {
                     valid_ = false;
                     return 0;
@@ -1339,6 +1348,10 @@ bool EraseValueByPointer(T& root, const CharType(&source)[N]) {
 RAPIDJSON_NAMESPACE_END
 
 #ifdef __clang__
+RAPIDJSON_DIAG_POP
+#endif
+
+#ifdef _MSC_VER
 RAPIDJSON_DIAG_POP
 #endif
 
