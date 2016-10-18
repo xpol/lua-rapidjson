@@ -18,6 +18,11 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/filewritestream.h"
 
+#ifdef __clang__
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(c++98-compat)
+#endif
+
 using namespace rapidjson;
 
 static const char kJson[] = "{\"hello\":\"world\",\"t\":true,\"f\":false,\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[1,2,3,-1],\"u64\":1234567890123456789,\"i64\":-1234567890123456789}";
@@ -39,6 +44,19 @@ static const char kPrettyJson[] =
 "    \"i64\": -1234567890123456789\n"
 "}";
 
+static const char kPrettyJson_FormatOptions_SLA[] =
+"{\n"
+"    \"hello\": \"world\",\n"
+"    \"t\": true,\n"
+"    \"f\": false,\n"
+"    \"n\": null,\n"
+"    \"i\": 123,\n"
+"    \"pi\": 3.1416,\n"
+"    \"a\": [1, 2, 3, -1],\n"
+"    \"u64\": 1234567890123456789,\n"
+"    \"i64\": -1234567890123456789\n"
+"}";
+
 TEST(PrettyWriter, Basic) {
     StringBuffer buffer;
     PrettyWriter<StringBuffer> writer(buffer);
@@ -46,6 +64,16 @@ TEST(PrettyWriter, Basic) {
     StringStream s(kJson);
     reader.Parse(s, writer);
     EXPECT_STREQ(kPrettyJson, buffer.GetString());
+}
+
+TEST(PrettyWriter, FormatOptions) {
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
+    writer.SetFormatOptions(kFormatSingleLineArray);
+    Reader reader;
+    StringStream s(kJson);
+    reader.Parse(s, writer);
+    EXPECT_STREQ(kPrettyJson_FormatOptions_SLA, buffer.GetString());
 }
 
 TEST(PrettyWriter, SetIndent) {
@@ -159,3 +187,49 @@ TEST(PrettyWriter, FileWriteStream) {
     EXPECT_STREQ(kPrettyJson, json);
     free(json);
 }
+
+TEST(PrettyWriter, RawValue) {
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
+    writer.StartObject();
+    writer.Key("a");
+    writer.Int(1);
+    writer.Key("raw");
+    const char json[] = "[\"Hello\\nWorld\", 123.456]";
+    writer.RawValue(json, strlen(json), kArrayType);
+    writer.EndObject();
+    EXPECT_TRUE(writer.IsComplete());
+    EXPECT_STREQ(
+        "{\n"
+        "    \"a\": 1,\n"
+        "    \"raw\": [\"Hello\\nWorld\", 123.456]\n" // no indentation within raw value
+        "}",
+        buffer.GetString());
+}
+
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+
+static PrettyWriter<StringBuffer> WriterGen(StringBuffer &target) {
+    PrettyWriter<StringBuffer> writer(target);
+    writer.StartObject();
+    writer.Key("a");
+    writer.Int(1);
+    return writer;
+}
+
+TEST(PrettyWriter, MoveCtor) {
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(WriterGen(buffer));
+    writer.EndObject();
+    EXPECT_TRUE(writer.IsComplete());
+    EXPECT_STREQ(
+        "{\n"
+        "    \"a\": 1\n"
+        "}",
+        buffer.GetString());
+}
+#endif
+
+#ifdef __clang__
+RAPIDJSON_DIAG_POP
+#endif
