@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project (rapidjson)
+project(lua-rapidjson)
 
 # compile in release  mode by default
 if(NOT CMAKE_BUILD_TYPE)
@@ -41,25 +41,25 @@ endif()
 
 include_directories(${LUA_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
-add_library (rapidjson MODULE src/rapidjson.cpp)
+add_library(lua-rapidjson MODULE src/rapidjson.cpp)
 
 if (LUA_LIBRARIES)
     message("Using LUALIB:${LUA_LIBRARIES}")
-    target_link_libraries(rapidjson ${LUA_LIBRARIES})
+    target_link_libraries(lua-rapidjson ${LUA_LIBRARIES})
 endif()
 
 if (LINK_FLAGS)
-    set_target_properties(rapidjson PROPERTIES
+    set_target_properties(lua-rapidjson PROPERTIES
         LINK_FLAGS ${LINK_FLAGS}
     )
 endif()
 
-set_target_properties(rapidjson PROPERTIES
+set_target_properties(lua-rapidjson PROPERTIES
     OUTPUT_NAME "rapidjson"
     PREFIX ""
 )
 
 
 if (CMAKE_INSTALL_PREFIX)
-  install(TARGETS rapidjson DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+  install(TARGETS lua-rapidjson DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
 endif(CMAKE_INSTALL_PREFIX)
