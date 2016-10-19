@@ -29,7 +29,7 @@ describe('rapidjson.decode()', function()
       r, m = rapidjson.decode('{}10')
       assert.are.equal(nil, r)
       assert.are.equal('string', type(m))
-      idx = string.find(m, "The document root must not follow by other values.", 1, true)
+      idx = string.find(m, "The document root must not be followed by other values.", 1, true)
       assert.are_not.equal(nil, idx)
 
       r, m = rapidjson.decode('{"a":b}')

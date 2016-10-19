@@ -147,14 +147,14 @@ static int json_array(lua_State* L)
 
 
 struct Ctx {
-	Ctx() : fn_(&topFn){}
-	Ctx(const Ctx& rhs) : table_(rhs.table_), index(rhs.index), fn_(rhs.fn_)
+	Ctx() : table_(null), index_(1), fn_(&topFn){}
+	Ctx(const Ctx& rhs) : table_(rhs.table_), index_(rhs.index_), fn_(rhs.fn_)
 	{
 	}
 	const Ctx& operator=(const Ctx& rhs){
 		if (this != &rhs) {
 			table_ = rhs.table_;
-			index = rhs.index;
+			index_ = rhs.index_;
 			fn_ = rhs.fn_;
 		}
 		return *this;
@@ -171,10 +171,10 @@ struct Ctx {
 		fn_(L, this);
 	}
 private:
-	Ctx(int table, void(*f)(lua_State* L, Ctx* ctx)) : table_(table), index(1), fn_(f) {}
+	Ctx(int table, void(*f)(lua_State* L, Ctx* ctx)) : table_(table), index_(1), fn_(f) {}
 
 	int table_;
-	int index;
+	int index_;
 	void(*fn_)(lua_State* L, Ctx* ctx);
 
 	static void objectFn(lua_State* L, Ctx* ctx)
@@ -184,7 +184,7 @@ private:
 
 	static void arrayFn(lua_State* L, Ctx* ctx)
 	{
-		lua_rawseti(L, ctx->table_, ctx->index++);
+		lua_rawseti(L, ctx->table_, ctx->index_++);
 	}
 	static void topFn(lua_State* L, Ctx* ctx)
 	{
@@ -237,6 +237,13 @@ struct ToLuaHandler {
 		lua_pushnumber(L, static_cast<lua_Number>(d));
 		current_.submit(L);
 		return true;
+	}
+  bool RawNumber(const char* str, SizeType length, bool copy) {
+    lua_getfield(L, LUA_GLOBALSINDEX, "tonumber");
+    lua_pushlstring(L, str, length);
+    lua_call(L, 1, 1);
+    current_.submit(L);
+    return true;
 	}
 	bool String(const char* str, SizeType length, bool copy) {
 		lua_pushlstring(L, str, length);
@@ -378,7 +385,7 @@ private:
 		int v = def;
 		lua_getfield(L, idx, name);  // [field]
 		if (lua_isnumber(L, -1))
-			v = lua_tointeger(L, -1);
+			v = static_cast<int>(lua_tointeger(L, -1));
 		lua_pop(L, 1);
 		return v;
 	}
@@ -657,11 +664,11 @@ static int json_dump(lua_State* L)
 
 
 static const luaL_Reg methods[] = {
-	// string <--> json
+	// string <--> lua table
 	{ "decode", json_decode },
 	{ "encode", json_encode },
 
-	// file <--> json
+	// file <--> lua table
 	{ "load", json_load },
 	{ "dump", json_dump },
 
