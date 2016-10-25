@@ -1,0 +1,7 @@
+; Top-most EditorConfig file
+root = true
+
+; 4-column space indentation
+[*.{cpp, hpp}]
+indent_style = tab
+indent_size = 2

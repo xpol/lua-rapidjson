@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <string>
 
-#include "lua.hpp"
+#include <lua.hpp>
 
 // __SSE2__ and __SSE4_2__ are recognized by gcc, clang, and the Intel compiler.
 // We use -march=native with gmake to enable -msse2 and -msse4.2, if supported.
@@ -27,6 +27,8 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
+
+#include "Userdata.hpp"
 
 using namespace rapidjson;
 
@@ -679,7 +681,6 @@ static const luaL_Reg methods[] = {
 	{ NULL, NULL }
 };
 
-
 extern "C" {
 
 LUALIB_API int luaopen_rapidjson(lua_State* L)
@@ -696,6 +697,9 @@ LUALIB_API int luaopen_rapidjson(lua_State* L)
 
 	lua_getfield(L, -1, "null"); // [rapidjson, json.null]
 	null = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
+
+	lua_pushcfunction(L, Userdata<Document>::create);
+	lua_setfield(L, -2, "Document");
 
 	createSharedMeta(L, JSON_TABLE_TYPE_OBJECT);
 	createSharedMeta(L, JSON_TABLE_TYPE_ARRAY);

@@ -30,7 +30,7 @@ else(UNIX)
     endif(WIN32)
 endif(UNIX)
 
-if (NOT LUA_INCLUDE_DIR)
+if (NOT LUA_INCLUDE_DIR OR NOT LUA_LIBRARIES)
     message("Using system lua...")
     find_package(Lua REQUIRED)
 endif()
@@ -39,9 +39,15 @@ if (NOT RAPIDJSON_INCLUDE_DIRS)
   set(RAPIDJSON_INCLUDE_DIRS rapidjson/include)
 endif()
 
+if (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 include_directories(${LUA_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
-add_library(lua-rapidjson MODULE src/rapidjson.cpp)
+set(SOURCES src/rapidjson.cpp src/Document.cpp src/Userdata.hpp)
+add_library(lua-rapidjson MODULE ${SOURCES})
+source_group(src FILES ${SOURCES})
 
 if (LUA_LIBRARIES)
     message("Using LUALIB:${LUA_LIBRARIES}")
