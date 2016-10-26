@@ -10,42 +10,37 @@
 #include <rapidjson/pointer.h>
 
 #include "Userdata.hpp"
-
+#include "values.hpp"
 
 
 using namespace  rapidjson;
 
 const char* const Userdata<Value>::Metatable = "rapidjson.Value";
 
-template<>
-Value* Userdata<Value>::construct(lua_State * L)
+Value checkValue(lua_State * L, int idx)
 {
 	size_t len;
 	const char* s;
-	Value* value;
 	switch (lua_type(L, 1)) {
 		case LUA_TNONE:
 		case LUA_TNIL:
-			return new Value();
+			return Value();
 		case LUA_TBOOLEAN:
-			return new Value(lua_toboolean(L, 1) != 0);
+			return Value(lua_toboolean(L, 1) != 0);
 		case LUA_TNUMBER:
-			return new Value(lua_tonumber(L, 1));
+			return Value(lua_tonumber(L, 1));
 		case LUA_TSTRING:
 			s = lua_tolstring(L, 1, &len);
-			return new Value(s, len);
+			return Value(s, static_cast<SizeType>(len));
 		case LUA_TTABLE:
-			
+
 		case LUA_TUSERDATA:
-			if ((value = Userdata<Value>::get(L, 1)) != NULL) {
-				return new Value((*value));
-			}// Fall-through
 		case LUA_TLIGHTUSERDATA: // Fall-through
 		case LUA_TFUNCTION:// Fall-through
 		case LUA_TTHREAD:// Fall-through
 		default:
-			luaL_error(L, "cannot create %s from %s.", Metatable, luaL_typename(L, 1));
-			return NULL; // make compiler happy.
+			luaL_error(L, "cannot create Value from %s.", luaL_typename(L, 1));
+			return Value(); // make compiler happy.
 	}
 }
 
@@ -56,6 +51,7 @@ Document* Userdata<Document>::construct(lua_State * L)
 {
 	return new Document();
 }
+
 
 static int pushParseResult(lua_State* L, Document* doc) {
 	ParseErrorCode err = doc->GetParseError();
@@ -91,26 +87,57 @@ static int Document_parseFile(lua_State* L) {
 	return pushParseResult(L, doc);;
 }
 
+
+/**
+ * doc:get('path'[, default])
+ */
 static int Document_get(lua_State* L) {
 	Document* doc = Userdata<Document>::check(L, 1);
-	const char* keypath = luaL_checkstring(L, 2);
-	Value* v = Pointer(keypath).Get(*doc);
-	if (v)
-		Userdata<Value>::push(L, v);
-	else
-		lua_pushvalue(L, 3);
+	Pointer ptr(luaL_checkstring(L, 2));
+	Value* v = ptr.Get(*doc);
 
+	if (!v) {
+		if (lua_gettop(L) >= 3) {
+			lua_pushvalue(L, 3);
+		}
+		else {
+			lua_pushnil(L);
+		}
+	}
+	else {
+		values::push(L, *v);
+	}
 	return 1;
 }
 
+static int Document_set(lua_State* L) {
+	Document* doc = Userdata<Document>::check(L, 1);
+	Pointer ptr(luaL_checkstring(L, 2));
+	Value v(values::toValue(L, 3, doc->GetAllocator()));
+
+	ptr.Set(*doc, v, doc->GetAllocator());
+
+	return 0;
+}
 
 
-
-static const luaL_Reg methods[] = {
+static const luaL_Reg reg[] = {
 	{ "parse", Document_parse },
 	{ "parseFile", Document_parseFile },
+
 	{ "__gc", Userdata<Document>::metamethod_gc },
 	{ "__tostring", Userdata<Document>::metamethod_tostring },
 
+	{ "get", Document_get },
+	{ "set", Document_set },
+	{ "__index", Document_get },
+	{ "__newindex", Document_set },
+
 	{ NULL, NULL }
 };
+
+
+template <>
+const luaL_Reg* Userdata<Document>::methods() {
+	return reg;
+}

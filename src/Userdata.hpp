@@ -2,6 +2,7 @@
 #define __LUA_RAPIDJSON_USERDATA_HPP__
 
 #include "lua.hpp"
+#include "luax.hpp"
 
 template <typename T>
 struct Userdata {
@@ -11,6 +12,14 @@ struct Userdata {
 	}
 
 	static T* construct(lua_State* L);
+
+	static void luaopen(lua_State* L) {
+		luaL_newmetatable(L, Metatable);
+		luax::setfuncs(L, methods());
+		lua_pop(L, 1);
+	}
+
+	static const luaL_Reg* methods();
 
 	static void push(lua_State* L, T* c) {
 		if (c == NULL) {
@@ -26,12 +35,6 @@ struct Userdata {
 
 		lua_getfield(L, LUA_REGISTRYINDEX, Metatable);
 		lua_setmetatable(L, -2);
-	}
-
-	static void setupMetatable(lua_State* L, int idx) {
-		lua_pushvalue(L, idx);
-
-		lua_pop(L, 1);
 	}
 
 	static T** getUserdata(lua_State* L, int idx) {
