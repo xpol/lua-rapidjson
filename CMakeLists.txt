@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(lua-rapidjson)
 
@@ -32,9 +32,9 @@ else(UNIX)
     endif(WIN32)
 endif(UNIX)
 
-if (NOT LUA_INCLUDE_DIR)
-    message("Using system lua...")
-    find_package(Lua REQUIRED PATHS )
+if(NOT BUILD_FOR_LUAROCKS)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+  find_package(Lua REQUIRED)
 endif()
 
 if (NOT RAPIDJSON_INCLUDE_DIRS)
@@ -52,7 +52,6 @@ add_library(lua-rapidjson MODULE ${SOURCES})
 source_group(src FILES ${SOURCES})
 
 if (LUA_LIBRARIES)
-    message("Using LUALIB:${LUA_LIBRARIES}")
     target_link_libraries(lua-rapidjson ${LUA_LIBRARIES})
 endif()
 

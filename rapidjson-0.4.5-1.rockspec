@@ -17,6 +17,7 @@ dependencies = {
 build = {
   type = "cmake",
   variables = {
+    BUILD_FOR_LUAROCKS = "ON",
     BUILD_SHARED_LIBS = "ON",
     CMAKE_INSTALL_PREFIX = "$(PREFIX)",
     LUA_INCLUDE_DIR = "$(LUA_INCDIR)",
