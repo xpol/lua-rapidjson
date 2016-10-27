@@ -35,7 +35,7 @@ struct Userdata {
 
 		*ud = c;
 
-		lua_getfield(L, LUA_REGISTRYINDEX, Metatable);
+		luaL_getmetatable(L, Metatable);
 		lua_setmetatable(L, -2);
 	}
 
@@ -48,7 +48,7 @@ struct Userdata {
 		T** p = getUserdata(L, idx);
 		if (p != NULL && *p != NULL) {
 			if (lua_getmetatable(L, idx)) {  /* does it have a metatable? */
-				lua_getfield(L, LUA_REGISTRYINDEX, Metatable);  /* get correct metatable */
+				luaL_getmetatable(L, Metatable);  /* get correct metatable */
 				if (lua_rawequal(L, -1, -2)) {  /* does it have the correct mt? */
 					lua_pop(L, 2);  /* remove both metatables */
 					return *p;

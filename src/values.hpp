@@ -89,7 +89,7 @@ namespace values {
 			return true;
 		}
 		bool RawNumber(const char* str, rapidjson::SizeType length, bool copy) {
-			lua_getfield(L, LUA_GLOBALSINDEX, "tonumber");
+			lua_getglobal(L, "tonumber");
 			lua_pushlstring(L, str, length);
 			lua_call(L, 1, 1);
 			context_.submit(L);

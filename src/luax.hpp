@@ -14,7 +14,7 @@ namespace luax {
 
 	inline size_t rawlen(lua_State* L, int idx) {
 #if LUA_VERSION_NUM >= 502
-		retrun lua_rawlen(L, idx);
+		return lua_rawlen(L, idx);
 #else
 		return lua_objlen(L, idx);
 #endif
