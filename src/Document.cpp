@@ -15,35 +15,7 @@
 
 using namespace  rapidjson;
 
-const char* const Userdata<Value>::Metatable = "rapidjson.Value";
-
-Value checkValue(lua_State * L, int idx)
-{
-	size_t len;
-	const char* s;
-	switch (lua_type(L, 1)) {
-		case LUA_TNONE:
-		case LUA_TNIL:
-			return Value();
-		case LUA_TBOOLEAN:
-			return Value(lua_toboolean(L, 1) != 0);
-		case LUA_TNUMBER:
-			return Value(lua_tonumber(L, 1));
-		case LUA_TSTRING:
-			s = lua_tolstring(L, 1, &len);
-			return Value(s, static_cast<SizeType>(len));
-		case LUA_TTABLE:
-
-		case LUA_TUSERDATA:
-		case LUA_TLIGHTUSERDATA: // Fall-through
-		case LUA_TFUNCTION:// Fall-through
-		case LUA_TTHREAD:// Fall-through
-		default:
-			luaL_error(L, "cannot create Value from %s.", luaL_typename(L, 1));
-			return Value(); // make compiler happy.
-	}
-}
-
+template<>
 const char* const Userdata<Document>::Metatable = "rapidjson.Document";
 
 template<>

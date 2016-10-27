@@ -11,6 +11,8 @@ if (LUA_RAPIDJSON_VERSION)
     add_definitions(-DLUA_RAPIDJSON_VERSION="${LUA_RAPIDJSON_VERSION}")
 endif()
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 if(UNIX)
     if(APPLE)
         set(PLAT "macosx")
@@ -30,9 +32,9 @@ else(UNIX)
     endif(WIN32)
 endif(UNIX)
 
-if (NOT LUA_INCLUDE_DIR OR NOT LUA_LIBRARIES)
+if (NOT LUA_INCLUDE_DIR)
     message("Using system lua...")
-    find_package(Lua REQUIRED)
+    find_package(Lua REQUIRED PATHS )
 endif()
 
 if (NOT RAPIDJSON_INCLUDE_DIRS)

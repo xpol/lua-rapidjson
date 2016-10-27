@@ -68,7 +68,7 @@ namespace values {
 			return true;
 		}
 		bool Int64(int64_t i) {
-			if (sizeof(lua_Integer) >= sizeof(int64_t) || i <= std::numeric_limits<lua_Integer>::max() && i >= std::numeric_limits<lua_Integer>::min())
+			if (sizeof(lua_Integer) >= sizeof(int64_t) || (i <= std::numeric_limits<lua_Integer>::max() && i >= std::numeric_limits<lua_Integer>::min()))
 				lua_pushinteger(L, static_cast<lua_Integer>(i));
 			else
 				lua_pushnumber(L, static_cast<lua_Number>(i));
