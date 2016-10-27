@@ -15,7 +15,9 @@ struct Userdata {
 
 	static void luaopen(lua_State* L) {
 		luaL_newmetatable(L, Metatable);
+		lua_pushvalue(L, -1);
 		luax::setfuncs(L, methods());
+		lua_setfield(L, -2, "__index");
 		lua_pop(L, 1);
 	}
 
@@ -26,7 +28,7 @@ struct Userdata {
 			lua_pushnil(L);
 			return;
 		}
-		T** ud = reinterpret_cast<T**>(L, sizeof(*ud));
+		T** ud = reinterpret_cast<T**>(lua_newuserdata(L, sizeof(*ud)));
 		if (!ud) {
 			luaL_error(L, "Out of memory");
 		}

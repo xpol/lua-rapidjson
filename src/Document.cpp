@@ -93,7 +93,8 @@ static int Document_parseFile(lua_State* L) {
  */
 static int Document_get(lua_State* L) {
 	Document* doc = Userdata<Document>::check(L, 1);
-	Pointer ptr(luaL_checkstring(L, 2));
+	const char* s = luaL_checkstring(L, 2);
+	Pointer ptr(s);
 	Value* v = ptr.Get(*doc);
 
 	if (!v) {
@@ -130,8 +131,6 @@ static const luaL_Reg reg[] = {
 
 	{ "get", Document_get },
 	{ "set", Document_set },
-	{ "__index", Document_get },
-	{ "__newindex", Document_set },
 
 	{ NULL, NULL }
 };

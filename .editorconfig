@@ -2,6 +2,6 @@
 root = true
 
 ; 4-column space indentation
-[*.{cpp, hpp}]
+[*.{cpp,hpp,lua}]
 indent_style = tab
 indent_size = 2
