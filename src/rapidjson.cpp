@@ -37,18 +37,6 @@ using namespace rapidjson;
 #define LUA_RAPIDJSON_VERSION "scm"
 #endif
 
-enum json_table_type {
-	JSON_TABLE_TYPE_OBJECT = 0,
-	JSON_TABLE_TYPE_ARRAY = 1,
-	JSON_TABLE_TYPE_MAX
-};
-
-static const char* JSON_TABLE_TYPE_NAMES[JSON_TABLE_TYPE_MAX] = { "object", "array" };
-static const char* JSON_TABLE_TYPE_METAS[JSON_TABLE_TYPE_MAX] = { "json.object", "json.array" };
-
-
-
-
 static FILE* openForRead(const char* filename)
 {
 	FILE* fp = NULL;
