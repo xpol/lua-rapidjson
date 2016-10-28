@@ -123,7 +123,7 @@ static int Document_validate(lua_State* L) {
 	auto doc = Userdata<Document>::check(L, 1);
 	auto validator = Userdata<SchemaValidator>::check(L, 2);
 
-	if (doc->Accept(*validator)) {
+	if (!doc->Accept(*validator)) {
 		return pushValidatorError(L, validator);
 	}
 	lua_pushboolean(L, 1);
