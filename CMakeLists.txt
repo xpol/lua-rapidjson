@@ -11,7 +11,7 @@ if (LUA_RAPIDJSON_VERSION)
     add_definitions(-DLUA_RAPIDJSON_VERSION="${LUA_RAPIDJSON_VERSION}")
 endif()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
 
 if(UNIX)
     if(APPLE)
@@ -26,13 +26,13 @@ if(UNIX)
 else(UNIX)
     if(WIN32)
         set(PLAT "win32")
-        add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB)
+        add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -D_CRT_SECURE_NO_WARNINGS)
     else(WIN32)
         set(PLAT "unsupported")
     endif(WIN32)
 endif(UNIX)
 
-if(NOT BUILD_FOR_LUAROCKS)
+if(NOT LUA_INCLUDE_DIR OR (WIN32 AND NOT LUA_LIBRARIES))
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
   find_package(Lua REQUIRED)
 endif()
@@ -41,17 +41,13 @@ if (NOT RAPIDJSON_INCLUDE_DIRS)
   set(RAPIDJSON_INCLUDE_DIRS rapidjson/include)
 endif()
 
-if (MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif()
-
 include_directories(${LUA_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
 set(SOURCES src/rapidjson.cpp src/Document.cpp src/Userdata.hpp src/values.cpp src/values.hpp src/luax.hpp)
 add_library(lua-rapidjson MODULE ${SOURCES})
 source_group(src FILES ${SOURCES})
 
-if (LUA_LIBRARIES)
+if (WIN32)
     target_link_libraries(lua-rapidjson ${LUA_LIBRARIES})
 endif()
 
