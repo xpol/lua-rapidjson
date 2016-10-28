@@ -7,7 +7,19 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
+if(NOT LUA_RAPIDJSON_VERSION)
+    find_package(Git)
+    if(GIT_FOUND)
+        execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE LUA_RAPIDJSON_VERSION
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+    endif()
+endif()
+
 if (LUA_RAPIDJSON_VERSION)
+    message("-- LUA_RAPIDJSON_VERSION: ${LUA_RAPIDJSON_VERSION}")
     add_definitions(-DLUA_RAPIDJSON_VERSION="${LUA_RAPIDJSON_VERSION}")
 endif()
 
