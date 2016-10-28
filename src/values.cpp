@@ -8,49 +8,16 @@ using rapidjson::SizeType;
 
 namespace values {
 
-	int null = LUA_NOREF;
-	const char* JSON_TABLE_TYPE_FIELD = "__jsontype";
-
-
-	/**
-	* Returns json.null.
-	*/
-	int json_null(lua_State* L)
-	{
-		lua_rawgeti(L, LUA_REGISTRYINDEX, null);
-		return 1;
-	}
-
-
-	bool hasJsonType(lua_State* L, int idx, bool& isarray)
-	{
-		bool has = false;
-		if (lua_getmetatable(L, idx)) {
-			// [metatable]
-			lua_getfield(L, -1, JSON_TABLE_TYPE_FIELD); // [metatable, metatable.__jsontype]
-			if (lua_isstring(L, -1))
-			{
-				size_t len;
-				const char* s = lua_tolstring(L, -1, &len);
-				isarray = (s != NULL && strncmp(s, "array", 6) == 0);
-				has = true;
-			}
-			lua_pop(L, 2); // []
-		}
-
-		return has;
-	}
-
 	namespace details {
-		static rapidjson::Value NumberValue(lua_State* L, int idx);
-		static rapidjson::Value StringValue(lua_State* L, int idx, Allocator& allocator);
-		static rapidjson::Value TableValue(lua_State* L, int idx, int depth, Allocator& allocator);
-		static rapidjson::Value ObjectValue(lua_State* L, int idx, int depth, Allocator& allocator);
-		static rapidjson::Value ArrayValue(lua_State* L, int idx, int depth, Allocator& allocator);
+		static Value NumberValue(lua_State* L, int idx);
+		static Value StringValue(lua_State* L, int idx, Allocator& allocator);
+		static Value TableValue(lua_State* L, int idx, int depth, Allocator& allocator);
+		static Value ObjectValue(lua_State* L, int idx, int depth, Allocator& allocator);
+		static Value ArrayValue(lua_State* L, int idx, int depth, Allocator& allocator);
 
 
 		Value toValue(lua_State* L, int idx, int depth, Allocator& allocator) {
-			int t = lua_type(L, idx);
+			auto t = lua_type(L, idx);
 			switch (t) {
 			case LUA_TBOOLEAN:
 				return Value(lua_toboolean(L, idx) != 0);
@@ -123,8 +90,8 @@ namespace values {
 		Value ArrayValue(lua_State* L, int idx, int depth, Allocator& allocator)
 		{
 			Value array(rapidjson::kArrayType);
-			int MAX = static_cast<int>(luax::rawlen(L, idx)); // luax::rawlen always returns size_t (>= 0)
-			for (int n = 1; n <= MAX; ++n)
+			auto MAX = static_cast<int>(luax::rawlen(L, idx)); // luax::rawlen always returns size_t (>= 0)
+			for (auto n = 1; n <= MAX; ++n)
 			{
 				lua_rawgeti(L, idx, n); // [table, element]
 				array.PushBack(toValue(L, -1, depth, allocator), allocator);

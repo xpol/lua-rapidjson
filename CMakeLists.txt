@@ -55,7 +55,16 @@ endif()
 
 include_directories(${LUA_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
-set(SOURCES src/rapidjson.cpp src/Document.cpp src/Userdata.hpp src/values.cpp src/values.hpp src/luax.hpp)
+set(SOURCES
+    src/Document.cpp
+    src/Schema.cpp
+    src/Userdata.hpp
+    src/luax.hpp
+    src/rapidjson.cpp
+    src/values.cpp
+    src/values.hpp
+)
+
 add_library(lua-rapidjson MODULE ${SOURCES})
 source_group(src FILES ${SOURCES})
 

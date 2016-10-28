@@ -11,8 +11,6 @@
 namespace values {
 	typedef rapidjson::Document::AllocatorType Allocator;
 
-	extern int null;
-	extern const char* JSON_TABLE_TYPE_FIELD;
 	int json_null(lua_State* L);
 
 	inline bool isnull(lua_State* L, int idx)
@@ -20,16 +18,33 @@ namespace values {
 		lua_pushvalue(L, idx); // [value]
 
 		json_null(L); // [value, json.null]
-		bool is = lua_rawequal(L, -1, -2) != 0;
+		auto is = lua_rawequal(L, -1, -2) != 0;
 		lua_pop(L, 2); // []
 
 		return is;
 	}
 
-	bool hasJsonType(lua_State* L, int idx, bool& isarray);
+	inline bool hasJsonType(lua_State* L, int idx, bool& isarray)
+	{
+		auto has = false;
+		if (lua_getmetatable(L, idx)) {
+			// [metatable]
+			lua_getfield(L, -1, "__jsontype"); // [metatable, metatable.__jsontype]
+			if (lua_isstring(L, -1))
+			{
+				size_t len;
+				auto s = lua_tolstring(L, -1, &len);
+				isarray = strncmp(s, "array", 6) == 0;
+				has = true;
+			}
+			lua_pop(L, 2); // []
+		}
+
+		return has;
+	}
 
 	inline bool isarray(lua_State* L, int idx) {
-		bool arr = false;
+		auto arr = false;
 		if (hasJsonType(L, idx, arr)) // any table with a meta field __jsontype set to 'array' are arrays
 			return arr;
 
@@ -42,7 +57,7 @@ namespace values {
 	 * Handle json SAX events and create Lua object.
 	 */
 	struct ToLuaHandler {
-		ToLuaHandler(lua_State* aL) : L(aL) { stack_.reserve(32); }
+		explicit ToLuaHandler(lua_State* aL) : L(aL) { stack_.reserve(32); }
 
 		bool Null() {
 			json_null(L);
@@ -169,7 +184,7 @@ namespace values {
 			int index_;
 			void(*fn_)(lua_State* L, Ctx* ctx);
 		private:
-			Ctx(void(*f)(lua_State* L, Ctx* ctx)) : index_(0), fn_(f) {}
+			explicit Ctx(void(*f)(lua_State* L, Ctx* ctx)) : index_(0), fn_(f) {}
 
 
 			static void objectFn(lua_State* L, Ctx* ctx)

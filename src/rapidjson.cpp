@@ -19,11 +19,13 @@
 #include "rapidjson/error/error.h"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/filewritestream.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/reader.h"
+#include "rapidjson/schema.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "rapidjson/prettywriter.h"
+
 
 #include "Userdata.hpp"
 #include "values.hpp"
@@ -74,15 +76,15 @@ static FILE* openForWrite(const char* filename)
 
 
 
-static void createSharedMeta(lua_State* L, json_table_type type)
+static void createSharedMeta(lua_State* L, const char* meta, const char* type)
 {
-	luaL_newmetatable(L, JSON_TABLE_TYPE_METAS[type]); // [meta]
-	lua_pushstring(L, JSON_TABLE_TYPE_NAMES[type]); // [meta, name]
-	lua_setfield(L, -2, values::JSON_TABLE_TYPE_FIELD); // [meta]
+	luaL_newmetatable(L, meta); // [meta]
+	lua_pushstring(L, type); // [meta, name]
+	lua_setfield(L, -2, "__jsontype"); // [meta]
 	lua_pop(L, 1); // []
 }
 
-static int makeTableType(lua_State* L, int idx, json_table_type type)
+static int makeTableType(lua_State* L, int idx, const char* meta, const char* type)
 {
 	bool isnoarg = lua_isnoneornil(L, idx);
 	bool istable = lua_istable(L, idx);
@@ -98,8 +100,8 @@ static int makeTableType(lua_State* L, int idx, json_table_type type)
 		{
 			// already have a metatable, just set the __jsontype field.
 			// [table, meta]
-			lua_pushstring(L, JSON_TABLE_TYPE_NAMES[type]); // [table, meta, name]
-			lua_setfield(L, -2, values::JSON_TABLE_TYPE_FIELD); // [table, meta]
+			lua_pushstring(L, type); // [table, meta, name]
+			lua_setfield(L, -2, "__jsontype"); // [table, meta]
 			lua_pop(L, 1); // [table]
 			return 1;
 		}
@@ -107,19 +109,19 @@ static int makeTableType(lua_State* L, int idx, json_table_type type)
 	}
 
 	// Now we have a table without meta table
-	luaL_getmetatable(L, JSON_TABLE_TYPE_METAS[type]); // [table, meta]
+	luaL_getmetatable(L, meta); // [table, meta]
 	lua_setmetatable(L, -2); // [table]
 	return 1;
 }
 
 static int json_object(lua_State* L)
 {
-	return makeTableType(L, 1, JSON_TABLE_TYPE_OBJECT);
+	return makeTableType(L, 1, "json.object", "object");
 }
 
 static int json_array(lua_State* L)
 {
-	return makeTableType(L, 1, JSON_TABLE_TYPE_ARRAY);
+	return makeTableType(L, 1, "json.array", "array");
 }
 
 
@@ -418,7 +420,7 @@ static int json_dump(lua_State* L)
 
 	const char* filename = luaL_checkstring(L, 2);
 	FILE* fp = openForWrite(filename);
-	if (fp == NULL)
+	if (fp == nullptr)
 		luaL_error(L, "error while open file: %s", filename);
 
 	static const size_t sz = 4 * 1024;
@@ -429,6 +431,18 @@ static int json_dump(lua_State* L)
 	return 0;
 }
 
+
+namespace values {
+	static auto nullref = LUA_NOREF;
+	/**
+	* Returns rapidjson.null.
+	*/
+	int json_null(lua_State* L)
+	{
+		lua_rawgeti(L, LUA_REGISTRYINDEX, nullref);
+		return 1;
+	}
+}
 
 static const luaL_Reg methods[] = {
 	// string <--> lua table
@@ -443,7 +457,13 @@ static const luaL_Reg methods[] = {
 	{ "null", values::json_null },
 	{ "object", json_object },
 	{ "array", json_array },
-	{ NULL, NULL }
+
+	// JSON types
+	{ "Document", Userdata<Document>::create },
+	{ "SchemaDocument", Userdata<SchemaDocument>::create },
+	{ "SchemaValidator", Userdata<SchemaValidator>::create },
+
+	{nullptr, nullptr }
 };
 
 extern "C" {
@@ -461,15 +481,16 @@ LUALIB_API int luaopen_rapidjson(lua_State* L)
 	lua_setfield(L, -2, "_VERSION"); // [rapidjson]
 
 	lua_getfield(L, -1, "null"); // [rapidjson, json.null]
-	values::null = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
+	values::nullref = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
 
-	lua_pushcfunction(L, Userdata<Document>::create);
-	lua_setfield(L, -2, "Document");
 
-	createSharedMeta(L, JSON_TABLE_TYPE_OBJECT);
-	createSharedMeta(L, JSON_TABLE_TYPE_ARRAY);
+	createSharedMeta(L, "json.object", "object");
+	createSharedMeta(L, "json.array", "array");
 
 	Userdata<Document>::luaopen(L);
+	Userdata<SchemaDocument>::luaopen(L);
+	Userdata<SchemaValidator>::luaopen(L);
+
 	return 1;
 }
 
