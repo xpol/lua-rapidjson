@@ -216,10 +216,8 @@ namespace values {
 		return details::toValue(L, idx, 0, allocator);
 	}
     
-    inline rapidjson::Document toDocument(lua_State* L, int idx) {
-        auto doc = rapidjson::Document();
-        details::toValue(L, idx, 0, doc.GetAllocator()).Swap(doc);
-        return doc;
+    inline void toDocument(lua_State* L, int idx, rapidjson::Document* doc) {
+        details::toValue(L, idx, 0, doc->GetAllocator()).Swap(*doc);
     }
 
 	inline void push(lua_State* L, const rapidjson::Value& v) {

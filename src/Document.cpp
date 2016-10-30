@@ -24,22 +24,22 @@ const char* const Userdata<Document>::metatable = "rapidjson.Document";
 template<>
 Document* Userdata<Document>::construct(lua_State * L)
 {
-    switch (lua_type(L, 1)) {
-        case LUA_TNONE:
-            return new Document();
-        case LUA_TSTRING: {
-            size_t len;
-            const char* s = luaL_checklstring(L, 1, &len);
-            auto doc = new Document();
-            doc->Parse(s, len);
-            return doc;
-        }
-        case LUA_TTABLE:
-            return new Document(values::toDocument(L, 1));
-        default:
-            luaL_typerror(L, 1, "none, string or table");
-            return nullptr;
+    auto t = lua_type(L, 1);
+    if (t != LUA_TNONE && t != LUA_TSTRING && t != LUA_TTABLE) {
+        luaL_typerror(L, 1, "none, string or table");
+        return nullptr;
     }
+
+    auto doc = new Document();
+    if (t == LUA_TSTRING) {
+        size_t len;
+        const char* s = luaL_checklstring(L, 1, &len);
+        doc->Parse(s, len);
+    }
+    else if (t == LUA_TTABLE) {
+        values::toDocument(L, 1, doc);
+    }
+    return doc;
 }
 
 

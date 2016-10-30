@@ -28,7 +28,8 @@ SchemaDocument* Userdata<SchemaDocument>::construct(lua_State * L)
             return new SchemaDocument(d);
         }
         case LUA_TTABLE: {
-            auto doc = values::toDocument(L, 1);
+            auto doc = Document();
+            values::toDocument(L, 1, &doc);
             return new SchemaDocument(doc);
         }
         case LUA_TUSERDATA:{
