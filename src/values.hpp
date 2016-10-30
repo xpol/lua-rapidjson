@@ -5,6 +5,7 @@
 #include <lua.hpp>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
+#include <rapidjson/pointer.h>
 
 #include "luax.hpp"
 
@@ -214,6 +215,12 @@ namespace values {
 	inline rapidjson::Value toValue(lua_State* L, int idx, Allocator& allocator) {
 		return details::toValue(L, idx, 0, allocator);
 	}
+    
+    inline rapidjson::Document toDocument(lua_State* L, int idx) {
+        auto doc = rapidjson::Document();
+        details::toValue(L, idx, 0, doc.GetAllocator()).Swap(doc);
+        return doc;
+    }
 
 	inline void push(lua_State* L, const rapidjson::Value& v) {
 		ToLuaHandler handler(L);
