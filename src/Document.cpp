@@ -111,40 +111,6 @@ static int Document_set(lua_State* L) {
 	return 0;
 }
 
-static int pushValidatorError(lua_State* L, SchemaValidator* validator) {
-	// nil
-	lua_pushnil(L);
-
-
-	StringBuffer sb;
-
-	// DocumentPointer
-	validator->GetInvalidDocumentPointer().StringifyUriFragment(sb);
-	lua_pushlstring(L, sb.GetString(), sb.GetSize());
-
-	sb.Clear();
-
-	// SchemaPointer
-	validator->GetInvalidSchemaPointer().StringifyUriFragment(sb);
-	lua_pushlstring(L, sb.GetString(), sb.GetSize());
-
-	// SchemaKeyword
-	lua_pushstring(L, validator->GetInvalidSchemaKeyword());
-
-	return 4;
-}
-
-static int Document_validate(lua_State* L) {
-	auto doc = Userdata<Document>::check(L, 1);
-	auto validator = Userdata<SchemaValidator>::check(L, 2);
-
-	if (!doc->Accept(*validator)) {
-		return pushValidatorError(L, validator);
-	}
-	lua_pushboolean(L, 1);
-	return 1;
-}
-
 
 static const luaL_Reg reg[] = {
 	{ "parse", Document_parse },
@@ -155,8 +121,6 @@ static const luaL_Reg reg[] = {
 
 	{ "get", Document_get },
 	{ "set", Document_set },
-
-	{ "validate", Document_validate },
 
 	{ nullptr, nullptr }
 };
