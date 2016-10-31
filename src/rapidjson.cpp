@@ -49,8 +49,8 @@ static void createSharedMeta(lua_State* L, const char* meta, const char* type)
 
 static int makeTableType(lua_State* L, int idx, const char* meta, const char* type)
 {
-	bool isnoarg = lua_isnoneornil(L, idx);
-	bool istable = lua_istable(L, idx);
+	auto isnoarg = lua_isnoneornil(L, idx);
+	auto istable = lua_istable(L, idx);
 	if (!isnoarg && !istable)
 		return luaL_argerror(L, idx, "optional table excepted");
 
@@ -89,9 +89,9 @@ static int json_array(lua_State* L)
 
 
 template<typename Stream>
-inline int decode(lua_State* L, Stream* s)
+int decode(lua_State* L, Stream* s)
 {
-	int top = lua_gettop(L);
+	auto top = lua_gettop(L);
 	values::ToLuaHandler handler(L);
 	Reader reader;
 	ParseResult r = reader.Parse(*s, handler);
@@ -109,7 +109,7 @@ inline int decode(lua_State* L, Stream* s)
 static int json_decode(lua_State* L)
 {
 	size_t len = 0;
-	const char* contents = luaL_checklstring(L, 1, &len);
+	auto contents = luaL_checklstring(L, 1, &len);
 	StringStream s(contents);
 	return decode(L, &s);
 }
@@ -170,7 +170,7 @@ private:
 		size_t len;
 		const char* s;
 		int64_t integer;
-		int t = lua_type(L, idx);
+		auto t = lua_type(L, idx);
 		switch (t) {
 		case LUA_TBOOLEAN:
 			writer->Bool(lua_toboolean(L, idx) != 0);
@@ -242,7 +242,7 @@ private:
 			if (lua_type(L, -2) == LUA_TSTRING)
 			{
 				size_t len = 0;
-				const char *key = lua_tolstring(L, -2, &len);
+				auto key = lua_tolstring(L, -2, &len);
 				keys.push_back(Key(key, static_cast<SizeType>(len)));
 			}
 
@@ -268,7 +268,7 @@ private:
 			if (lua_type(L, -2) == LUA_TSTRING)
 			{
 				size_t len = 0;
-				const char *key = lua_tolstring(L, -2, &len);
+				auto key = lua_tolstring(L, -2, &len);
 				writer->Key(key, static_cast<SizeType>(len));
 				encodeValue(L, writer, -1, depth);
 			}
@@ -308,8 +308,8 @@ private:
 	{
 		// [table]
 		writer->StartArray();
-		int MAX = static_cast<int>(luax::rawlen(L, -1)); // lua_rawlen always returns value >= 0
-		for (int n = 1; n <= MAX; ++n)
+		auto MAX = static_cast<int>(luax::rawlen(L, -1)); // lua_rawlen always returns value >= 0
+		for (auto n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
 			encodeValue(L, writer, -1, depth);
