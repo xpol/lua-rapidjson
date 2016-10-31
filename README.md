@@ -4,11 +4,8 @@
 [![TrivisStatus][]][Trivis] [![AppVeyorStatus][]][AppVeyor]
 
 
-A very fast json module for LuaJIT 2.0/2.1 and Lua 5.1/5.2/5.3.
-
-Based on the very fast [RapidJSON][] C++ library.
-
-
+A json module for LuaJIT 2.0/2.1 and Lua 5.1/5.2/5.3,
+based on the very fast [RapidJSON][] C++ library.
 
 See project [homepage][] for more informations,
 bug report and feature request.

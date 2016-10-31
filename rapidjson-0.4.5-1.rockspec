@@ -6,8 +6,8 @@ source = {
   tag = "v"..v
 }
 description = {
-  summary = "Very fast json module based on RapidJSON.",
-  detailed = "A very fast json module for LuaJIT and Lua 5.1/5.2/5.3 based on the RapidJSON.",
+  summary = "Json module based on the very fast RapidJSON.",
+  detailed = "A json module for LuaJIT and Lua 5.1/5.2/5.3 based on the very fast RapidJSON.",
    homepage = "https://github.com/xpol/lua-rapidjson",
    license = "MIT"
 }
