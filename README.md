@@ -64,7 +64,7 @@ See [API reference](API.md).
 
 1. Pass all unit tests.
 2. Update version in rapidjson-*.*.*-1.rockspec and update the name of the rockspec file.
-3. Tag source code with that version (*.*.*), and push.
+3. Tag source code with that version (v*.*.*), and push.
 4. `luarocks upload rapidjson-*.*.*-1.rockspec`
 
 ## Changelog
