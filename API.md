@@ -2,7 +2,7 @@
 
 ## rapidjson.decode()
 
-Decode json to lua table.
+Decode JSON to Lua table.
 
 ### Synopsis
 
@@ -14,15 +14,15 @@ value = rapidjson.decode(jsonstring)
 
 **jsonstring**
 
-A json value string to be decoded.
+A JSON value string to be decoded.
 
 ### Returns
 
-Return table if json is an object or array.
+Return table if JSON is an object or array.
 
-Return `true`, `false`, number and `rapidjson.null` respectively if json is a simple value.
+Return `true`, `false`, number and `rapidjson.null` respectively if JSON is a simple value.
 
-Return nil plus an error message as a second result when passed string is not valid json string.
+Return nil plus an error message as a second result when passed string is not a valid JSON.
 
 
 ### Errors
@@ -32,7 +32,7 @@ Return nil plus an error message as a second result when passed string is not va
 
 ## rapidjson.encode()
 
-Encode lua table to json string.
+Encode Lua table to stringified JSON.
 
 supports the following types:
 
@@ -42,7 +42,7 @@ supports the following types:
 * string
 * table
 
-The json object keys are sorted by the this function.
+The JSON object keys are sorted by the this function.
 
 ### Synopsis
 
@@ -56,23 +56,23 @@ string = rapidjson.encode(value [, option])
 
 When passed a table:
 
-1. it is encoded as json array if:
+1. it is encoded as JSON array if:
     - meta field `__jsontype` set to `array`.
     - table contains length > 0.
-2. otherwise the table is encoded as json object and non string keys and its values are ignored.
+2. otherwise the table is encoded as JSON object and non string keys and its values are ignored.
 
-When passed with `true`, `false`, number and `rapidjson.null`, simply encode as simple json value.
+When passed with `true`, `false`, number and `rapidjson.null`, simply encode as simple JSON value.
 
 **option**:
 
 A optional table contains follow field:
 
 * `pretty` boolean: Set `true` to make output string to be pretty formated. Default is false.
-* `sort_keys` boolean: Set `true` to make json object keys be sorted. Default is `false`.
+* `sort_keys` boolean: Set `true` to make JSON object keys be sorted. Default is `false`.
 
 ### Returns
 
-Return encoded json string on success.
+Return stringified JSON on success.
 Return nil on failure, plus an error message as a second result.
 
 
@@ -109,7 +109,7 @@ rapidjson.encode({a=true, b=false}) --> '{"a":true,"b":false]'
 
 ## rapidjson.load()
 
-Load json file into lua table.
+Load JSON file into Lua table.
 
 ### Synopsis
 
@@ -121,7 +121,7 @@ value = rapidjson.load(filename)
 
 **filename**
 
-Json file to be loaded.
+JSON file to be loaded.
 
 ### Returns
 
@@ -129,18 +129,18 @@ Return table if file contains an object or array.
 
 Return `true`, `false`, number and `rapidjson.null` respectively if file contains a simple value.
 
-Return nil plus an error message as a second result when passed file is not valid json file.
+Return nil plus an error message as a second result when passed file is not valid JSON file.
 
 
 ### Errors
 
-- When passed filename is not (convertable to) string.
+- When passed filename is not (convertible to) string.
 
 
 
 ## rapidjson.dump()
 
-Dump lua value to json file.
+Dump Lua value to JSON file.
 
 ### Synopsis
 
@@ -157,7 +157,7 @@ Same as in `rapidjson.encode()`.
 
 **filename**
 
-The file path string where to save dumpped rapidjson.
+The file path string where to save stringified rapidjson.
 
 
 **option**:
@@ -207,7 +207,7 @@ rapidjson.encode({rapidjson.null}) --> '[null]'
 
 ## rapidjson.object()
 
-Create a new empty table that have metatable field `__jsontype` set as `'object'` so that the `encode` and `dump` function will encode it as json object.
+Create a new empty table that have metatable field `__jsontype` set as `'object'` so that the `encode` and `dump` function will encode it as JSON object.
 
 When passed an valid table:
 
@@ -234,12 +234,12 @@ Or new created table.
 
 ## rapidjson.array()
 
-Same as rapidjson.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as json array.
+Same as rapidjson.array() except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as JSON array.
 
 
 ## rapidjson.Document()
 
-Creates a rapidjson Document object. Optionally create from a Lua table or JSON string.
+Creates a rapidjson Document object. Optionally create from a Lua table or string of JSON document.
 
 ### Synopsis
 
@@ -349,7 +349,7 @@ doc:set('/a', {'apple', 'air'})
 
 ## rapidjson.SchemaDocument()
 
-Creates a SchemaDocument from Document or a Lua table or a string contains a json schema.
+Creates a SchemaDocument from Document or a Lua table or a string contains a JSON schema.
 
 ### Synopsis
 
