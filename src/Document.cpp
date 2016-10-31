@@ -7,12 +7,16 @@
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/istreamwrapper.h>
+#include <rapidjson/ostreamwrapper.h>
 #include <rapidjson/pointer.h>
 
 #include "Userdata.hpp"
 #include "values.hpp"
 #include <rapidjson/schema.h>
 #include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/filewritestream.h>
+
 
 
 using namespace  rapidjson;
@@ -111,8 +115,52 @@ static int Document_set(lua_State* L) {
 	return 0;
 }
 
+/**
+ * local jsonstr = doc:stringify({pretty=false})
+ */
+static int Document_stringify(lua_State* L) {
+	auto doc = Userdata<Document>::check(L, 1);
+
+	auto pretty = luax::optboolfield(L, 2, "pretty", false);
+
+	StringBuffer sb;
+	if (pretty) {
+		PrettyWriter<StringBuffer> writer(sb);
+		doc->Accept(writer);
+	}
+	else {
+		Writer<StringBuffer> writer(sb);
+		doc->Accept(writer);
+	}
+	lua_pushlstring(L, sb.GetString(), sb.GetSize());
+
+	return 1;
+}
 
 
+/**
+ * doc:save(filename, {pretty=false, sort_keys=false})
+ */
+static int Document_save(lua_State* L) {
+	auto doc = Userdata<Document>::check(L, 1);
+	auto filename = luaL_checkstring(L, 2);
+	auto pretty = luax::optboolfield(L, 3, "pretty", false);
+
+	std::ofstream of(filename, std::ios::binary);
+	OStreamWrapper osw(of);
+
+	if (pretty) {
+		PrettyWriter<OStreamWrapper> writer(osw);
+		doc->Accept(writer);
+	}
+	else {
+		Writer<OStreamWrapper> writer(osw);
+		doc->Accept(writer);
+	}
+	of.close();
+
+	return 0;
+}
 
 
 template <>
@@ -127,7 +175,11 @@ const luaL_Reg* Userdata<Document>::methods() {
 		{ "get", Document_get },
 		{ "set", Document_set },
 
+		{ "stringify", Document_stringify },
+		{ "save", Document_save },
+
 		{ nullptr, nullptr }
 	};
 	return reg;
 }
+

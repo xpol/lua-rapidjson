@@ -184,35 +184,12 @@ public:
 			return;
 		luaL_checktype(L, opt, LUA_TTABLE);
 
-		pretty = optBooleanField(L, opt, "pretty", false);
-		sort_keys = optBooleanField(L, opt, "sort_keys", false);
-		max_depth = optIntegerField(L, opt, "max_depth", MAX_DEPTH_DEFAULT);
+		pretty = luax::optboolfield(L, opt, "pretty", false);
+		sort_keys = luax::optboolfield(L, opt, "sort_keys", false);
+		max_depth = luax::optintfield(L, opt, "max_depth", MAX_DEPTH_DEFAULT);
 	}
 
 private:
-	static bool optBooleanField(lua_State* L, int idx, const char* name, bool def)
-	{
-		bool v = def;
-		lua_getfield(L, idx, name);  // [field]
-		if (!lua_isnoneornil(L, -1))
-			v = lua_toboolean(L, -1) != 0;;
-		lua_pop(L, 1);
-		return v;
-	}
-	static int optIntegerField(lua_State* L, int idx, const char* name, int def)
-	{
-		int v = def;
-		lua_getfield(L, idx, name);  // [field]
-		if (lua_isnumber(L, -1))
-			v = static_cast<int>(lua_tointeger(L, -1));
-		lua_pop(L, 1);
-		return v;
-	}
-
-
-
-
-
 	template<typename Writer>
 	void encodeValue(lua_State* L, Writer* writer, int idx, int depth = 0)
 	{

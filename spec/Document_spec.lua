@@ -1,4 +1,12 @@
 --luacheck: ignore describe it
+local function fileContents(filename)
+	local f = io.open(filename, 'rb')
+	if not f then return nil end
+	local c = f:read('*a')
+	f:close()
+	return c
+end
+
 describe('rapidjson.Document', function()
   local rapidjson = require('rapidjson')
 	local doc
@@ -134,6 +142,51 @@ describe('rapidjson.Document', function()
 			assert.is_nil(doc:get('/a'))
 			doc:set('/a/b/c', true)
 			assert.are.same( {b={c=true}}, doc:get('/a'))
+		end)
+	end)
+
+	describe(':stringify()', function()
+		it('serializes docuement to string', function()
+			doc:parse('{"a":["apple","air"],"/":10,"~":0.5," ":"ws"}')
+			assert.are.equals('{"a":["apple","air"],"/":10,"~":0.5," ":"ws"}', doc:stringify())
+		end)
+		it('support pretty pring', function()
+			doc:parse('{"a":["apple","air"],"/":10,"~":0.5," ":"ws"}')
+			assert.are.equals(
+[[{
+    "a": [
+        "apple",
+        "air"
+    ],
+    "/": 10,
+    "~": 0.5,
+    " ": "ws"
+}]], doc:stringify({pretty=true}))
+		end)
+	end)
+	describe(':save()', function()
+		local filename = '.temp_json_file.json'
+		after_each(function()
+			os.remove(filename)
+		end)
+		it('saves docuement to file', function()
+			doc:parse('{"a":["apple","air"],"/":10,"~":0.5," ":"ws"}')
+			doc:save(filename)
+			assert.are.equals('{"a":["apple","air"],"/":10,"~":0.5," ":"ws"}', fileContents(filename))
+		end)
+		it('support pretty pring', function()
+			doc:parse('{"a":["apple","air"],"/":10,"~":0.5," ":"ws"}')
+			doc:save(filename, {pretty=true})
+			assert.are.equals(
+[[{
+    "a": [
+        "apple",
+        "air"
+    ],
+    "/": 10,
+    "~": 0.5,
+    " ": "ws"
+}]], fileContents(filename))
 		end)
 	end)
 end)
