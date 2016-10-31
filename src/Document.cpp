@@ -112,21 +112,22 @@ static int Document_set(lua_State* L) {
 }
 
 
-static const luaL_Reg reg[] = {
-	{ "parse", Document_parse },
-	{ "parseFile", Document_parseFile },
 
-	{ "__gc", Userdata<Document>::metamethod_gc },
-	{ "__tostring", Userdata<Document>::metamethod_tostring },
-
-	{ "get", Document_get },
-	{ "set", Document_set },
-
-	{ nullptr, nullptr }
-};
 
 
 template <>
 const luaL_Reg* Userdata<Document>::methods() {
+	static const luaL_Reg reg[] = {
+		{ "parse", Document_parse },
+		{ "parseFile", Document_parseFile },
+
+		{ "__gc", metamethod_gc },
+		{ "__tostring", metamethod_tostring },
+
+		{ "get", Document_get },
+		{ "set", Document_set },
+
+		{ nullptr, nullptr }
+	};
 	return reg;
 }
