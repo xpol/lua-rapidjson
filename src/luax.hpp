@@ -55,7 +55,7 @@ namespace luax {
 #endif
 	}
 
-	static bool optboolfield(lua_State* L, int idx, const char* name, bool def)
+	inline bool optboolfield(lua_State* L, int idx, const char* name, bool def)
 	{
 		auto v = def;
 		auto t = lua_type(L, idx);
@@ -72,7 +72,7 @@ namespace luax {
 		return v;
 	}
 
-	static int optintfield(lua_State* L, int idx, const char* name, int def)
+	inline int optintfield(lua_State* L, int idx, const char* name, int def)
 	{
 		auto v = def;
 		lua_getfield(L, idx, name);  // [field]
