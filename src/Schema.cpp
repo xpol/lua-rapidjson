@@ -37,7 +37,7 @@ SchemaDocument* Userdata<SchemaDocument>::construct(lua_State * L)
             return new SchemaDocument(*doc);
         }
         default:
-            luaL_typerror(L, 1, "none, string, table or rapidjson.Document");
+            luax::typerror(L, 1, "none, string, table or rapidjson.Document");
             return nullptr; // Just make compiler happy
     }
 }

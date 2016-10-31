@@ -45,6 +45,15 @@ namespace luax {
 		return false;
 	}
 
+	inline int typerror(lua_State* L, int narg, const char* tname) {
+#if LUA_VERSION_NUM < 502
+		return luaL_typerror(L, narg, tname);
+#else
+		const char *msg = lua_pushfstring(L, "%s expected, got %s",
+			tname, luaL_typename(L, narg));
+		return luaL_argerror(L, narg, msg);
+#endif
+	}
 
 }
 

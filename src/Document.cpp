@@ -26,7 +26,7 @@ Document* Userdata<Document>::construct(lua_State * L)
 {
     auto t = lua_type(L, 1);
     if (t != LUA_TNONE && t != LUA_TSTRING && t != LUA_TTABLE) {
-        luaL_typerror(L, 1, "none, string or table");
+        luax::typerror(L, 1, "none, string or table");
         return nullptr;
     }
 
