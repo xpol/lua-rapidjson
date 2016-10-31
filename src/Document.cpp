@@ -16,7 +16,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/filewritestream.h>
-
+#include "file.hpp"
 
 
 using namespace  rapidjson;
@@ -146,18 +146,19 @@ static int Document_save(lua_State* L) {
 	auto filename = luaL_checkstring(L, 2);
 	auto pretty = luax::optboolfield(L, 3, "pretty", false);
 
-	std::ofstream of(filename, std::ios::binary);
-	OStreamWrapper osw(of);
+	auto fp = file::open(filename, "wb");
+	char buffer[512];
+	FileWriteStream fs(fp, buffer, sizeof(buffer));
 
 	if (pretty) {
-		PrettyWriter<OStreamWrapper> writer(osw);
+		PrettyWriter<FileWriteStream> writer(fs);
 		doc->Accept(writer);
 	}
 	else {
-		Writer<OStreamWrapper> writer(osw);
+		Writer<FileWriteStream> writer(fs);
 		doc->Accept(writer);
 	}
-	of.close();
+	fclose(fp);
 
 	return 0;
 }

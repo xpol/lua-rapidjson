@@ -59,6 +59,7 @@ set(SOURCES
     src/Document.cpp
     src/Schema.cpp
     src/Userdata.hpp
+    src/file.hpp
     src/luax.hpp
     src/rapidjson.cpp
     src/values.cpp

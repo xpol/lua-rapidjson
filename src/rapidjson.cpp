@@ -30,38 +30,13 @@
 #include "Userdata.hpp"
 #include "values.hpp"
 #include "luax.hpp"
+#include "file.hpp"
 
 using namespace rapidjson;
 
 #ifndef LUA_RAPIDJSON_VERSION
 #define LUA_RAPIDJSON_VERSION "scm"
 #endif
-
-static FILE* openForRead(const char* filename)
-{
-	FILE* fp = NULL;
-#if WIN32
-	fopen_s(&fp, filename, "rb");
-#else
-	fp = fopen(filename, "r");
-#endif
-
-	return fp;
-}
-
-static FILE* openForWrite(const char* filename)
-{
-	FILE* fp = NULL;
-#if WIN32
-	fopen_s(&fp, filename, "wb");
-#else
-	fp = fopen(filename, "w");
-#endif
-
-	return fp;
-}
-
-
 
 
 static void createSharedMeta(lua_State* L, const char* meta, const char* type)
@@ -143,17 +118,16 @@ static int json_decode(lua_State* L)
 
 static int json_load(lua_State* L)
 {
-	const char* filename = luaL_checklstring(L, 1, NULL);
-	FILE* fp = openForRead(filename);
-	if (fp == NULL)
+	auto filename = luaL_checklstring(L, 1, NULL);
+	auto fp = file::open(filename, "rb");
+	if (fp == nullptr)
 		luaL_error(L, "error while open file: %s", filename);
 
-	static const size_t BufferSize = 16 * 1024;
-	std::vector<char> readBuffer(BufferSize);
-	FileReadStream fs(fp, &readBuffer.front(), BufferSize);
+	char buffer[512];
+	FileReadStream fs(fp, buffer, sizeof(buffer));
 	AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
 
-	int n = decode(L, &eis);
+	auto n = decode(L, &eis);
 
 	fclose(fp);
 	return n;
@@ -383,14 +357,13 @@ static int json_dump(lua_State* L)
 {
 	Encoder encoder(L, 3);
 
-	const char* filename = luaL_checkstring(L, 2);
-	FILE* fp = openForWrite(filename);
+	auto filename = luaL_checkstring(L, 2);
+	auto fp = file::open(filename, "wb");
 	if (fp == nullptr)
 		luaL_error(L, "error while open file: %s", filename);
 
-	static const size_t sz = 4 * 1024;
-	std::vector<char> buffer(sz);
-	FileWriteStream fs(fp, &buffer.front(), sz);
+	char buffer[512];
+	FileWriteStream fs(fp, buffer, sizeof(buffer));
 	encoder.encode(L, &fs, 1);
 	fclose(fp);
 	return 0;
