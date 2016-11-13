@@ -429,7 +429,7 @@ Validates a JSON document.
 ### Synopsis
 
 ```lua
-local ok, message validator:validate(d)
+local ok, message = validator:validate(d)
 ```
 
 ### Arguments
