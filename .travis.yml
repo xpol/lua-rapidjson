@@ -13,22 +13,29 @@ env:
   global:
     - LUAROCKS=2.4.1
   matrix:
-    - LUA=lua5.1
-    - LUA=lua5.2
-    - LUA=lua5.3
-    - LUA=luajit2.0
-    - LUA=luajit2.1
+    - LUA=5.1.5
+    - LUA=5.2.4
+    - LUA=5.3.3
+    - LUA=luajit-2.0.4
+    - LUA=luajit-2.1-dev
 
 branches:
   only:
     - master
 
 before_install:
-  # Install Lua and setup env.
-  - source .scripts/setenv_lua.sh
-  # Install testing dependency
-  - luarocks install busted
+  - git clone --depth 1 https://github.com/cehoffman/luaenv.git ~/.luaenv
+  - git clone --depth 1 https://github.com/cehoffman/lua-build.git ~/.luaenv/plugins/lua-build
+  - git clone --depth 1 https://github.com/xpol/luaenv-luarocks.git ~/.luaenv/plugins/luaenv-luarocks
+  - export PATH="$HOME/.luaenv/bin:$PATH"
+  - eval "$(luaenv init -)"
+  - luaenv install $LUA
+  - luaenv global $LUA
+  - luaenv luarocks $LUAROCKS
+  - luarocks install luafilesystem
   - luarocks install dromozoa-utf8
+  - luarocks install busted
+  - luaenv rehash
 
 install:
   - luarocks make
