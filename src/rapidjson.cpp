@@ -49,8 +49,8 @@ static void createSharedMeta(lua_State* L, const char* meta, const char* type)
 
 static int makeTableType(lua_State* L, int idx, const char* meta, const char* type)
 {
-	auto isnoarg = lua_isnoneornil(L, idx);
-	auto istable = lua_istable(L, idx);
+	bool isnoarg = lua_isnoneornil(L, idx);
+	bool istable = lua_istable(L, idx);
 	if (!isnoarg && !istable)
 		return luaL_argerror(L, idx, "optional table excepted");
 
@@ -91,7 +91,7 @@ static int json_array(lua_State* L)
 template<typename Stream>
 int decode(lua_State* L, Stream* s)
 {
-	auto top = lua_gettop(L);
+	int top = lua_gettop(L);
 	values::ToLuaHandler handler(L);
 	Reader reader;
 	ParseResult r = reader.Parse(*s, handler);
@@ -109,7 +109,7 @@ int decode(lua_State* L, Stream* s)
 static int json_decode(lua_State* L)
 {
 	size_t len = 0;
-	auto contents = luaL_checklstring(L, 1, &len);
+	const char* contents = luaL_checklstring(L, 1, &len);
 	StringStream s(contents);
 	return decode(L, &s);
 }
@@ -118,16 +118,16 @@ static int json_decode(lua_State* L)
 
 static int json_load(lua_State* L)
 {
-	auto filename = luaL_checklstring(L, 1, NULL);
-	auto fp = file::open(filename, "rb");
-	if (fp == nullptr)
+	const char* filename = luaL_checklstring(L, 1, NULL);
+	FILE* fp = file::open(filename, "rb");
+	if (fp == NULL)
 		luaL_error(L, "error while open file: %s", filename);
 
 	char buffer[512];
 	FileReadStream fs(fp, buffer, sizeof(buffer));
 	AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
 
-	auto n = decode(L, &eis);
+	int n = decode(L, &eis);
 
 	fclose(fp);
 	return n;
@@ -170,7 +170,7 @@ private:
 		size_t len;
 		const char* s;
 		int64_t integer;
-		auto t = lua_type(L, idx);
+		int t = lua_type(L, idx);
 		switch (t) {
 		case LUA_TBOOLEAN:
 			writer->Bool(lua_toboolean(L, idx) != 0);
@@ -242,7 +242,7 @@ private:
 			if (lua_type(L, -2) == LUA_TSTRING)
 			{
 				size_t len = 0;
-				auto key = lua_tolstring(L, -2, &len);
+				const char* key = lua_tolstring(L, -2, &len);
 				keys.push_back(Key(key, static_cast<SizeType>(len)));
 			}
 
@@ -268,7 +268,7 @@ private:
 			if (lua_type(L, -2) == LUA_TSTRING)
 			{
 				size_t len = 0;
-				auto key = lua_tolstring(L, -2, &len);
+				const char* key = lua_tolstring(L, -2, &len);
 				writer->Key(key, static_cast<SizeType>(len));
 				encodeValue(L, writer, -1, depth);
 			}
@@ -308,8 +308,8 @@ private:
 	{
 		// [table]
 		writer->StartArray();
-		auto MAX = static_cast<int>(luax::rawlen(L, -1)); // lua_rawlen always returns value >= 0
-		for (auto n = 1; n <= MAX; ++n)
+		int MAX = static_cast<int>(luax::rawlen(L, -1)); // lua_rawlen always returns value >= 0
+		for (int n = 1; n <= MAX; ++n)
 		{
 			lua_rawgeti(L, -1, n); // [table, element]
 			encodeValue(L, writer, -1, depth);
@@ -357,9 +357,9 @@ static int json_dump(lua_State* L)
 {
 	Encoder encoder(L, 3);
 
-	auto filename = luaL_checkstring(L, 2);
-	auto fp = file::open(filename, "wb");
-	if (fp == nullptr)
+	const char* filename = luaL_checkstring(L, 2);
+	FILE* fp = file::open(filename, "wb");
+	if (fp == NULL)
 		luaL_error(L, "error while open file: %s", filename);
 
 	char buffer[512];
@@ -371,7 +371,7 @@ static int json_dump(lua_State* L)
 
 
 namespace values {
-	static auto nullref = LUA_NOREF;
+	static int nullref = LUA_NOREF;
 	/**
 	* Returns rapidjson.null.
 	*/
@@ -401,7 +401,7 @@ static const luaL_Reg methods[] = {
 	{ "SchemaDocument", Userdata<SchemaDocument>::create },
 	{ "SchemaValidator", Userdata<SchemaValidator>::create },
 
-	{nullptr, nullptr }
+	{NULL, NULL }
 };
 
 extern "C" {

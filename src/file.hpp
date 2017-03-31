@@ -8,7 +8,7 @@ namespace file {
 	inline FILE* open(const char* filename, const char* mode)
 	{
 #if WIN32
-		FILE* fp = nullptr;
+		FILE* fp = NULL;
 		fopen_s(&fp, filename, mode);
 		return fp;
 #else

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
 project(lua-rapidjson)
 
@@ -22,8 +22,6 @@ if (LUA_RAPIDJSON_VERSION)
     message("-- LUA_RAPIDJSON_VERSION: ${LUA_RAPIDJSON_VERSION}")
     add_definitions(-DLUA_RAPIDJSON_VERSION="${LUA_RAPIDJSON_VERSION}")
 endif()
-
-set(CMAKE_CXX_STANDARD 11)
 
 if(UNIX)
     if(APPLE)
@@ -67,6 +65,7 @@ set(SOURCES
 )
 
 add_library(lua-rapidjson MODULE ${SOURCES})
+target_compile_features(lua-rapidjson PRIVATE cxx_rvalue_references)
 source_group(src FILES ${SOURCES})
 
 if (WIN32)
