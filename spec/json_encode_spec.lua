@@ -1,3 +1,6 @@
+require 'busted.runner'()
+
+
 --luacheck: ignore describe it
 describe('rapidjson.encode()', function()
   local rapidjson = require('rapidjson')
@@ -127,8 +130,11 @@ describe('rapidjson.encode()', function()
     )
   end)
 
+  it('should support empty_table_as_array options', function()
+    assert.are.equal('{"a": []}', rapidjson.encode({a={}}, {empty_table_as_array=true}))
+    assert.are.equal('{"a": {}}', rapidjson.encode({a={}}))
+  end)
   it('should support sort_keys and pretty options', function()
-
     assert.are.equal(
 [[{
     "A": true,

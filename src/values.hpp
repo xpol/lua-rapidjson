@@ -43,12 +43,22 @@ namespace values {
 		return has;
 	}
 
-	inline bool isarray(lua_State* L, int idx) {
+	inline bool isarray(lua_State* L, int idx, bool empty_table_as_array = false) {
 		bool arr = false;
 		if (hasJsonType(L, idx, arr)) // any table with a meta field __jsontype set to 'array' are arrays
 			return arr;
 
-		return luax::rawlen(L, idx) > 0; // any table has length > 0 are treat as array.
+		lua_pushvalue(L, idx);
+		lua_pushnil(L);
+		if (lua_next(L, -2) != 0) {
+			lua_pop(L, 3);
+
+			return luax::rawlen(L, idx) > 0; // any non empty table has length > 0 are treat as array.
+		}
+
+		lua_pop(L, 1);
+		// Now it comes empty table
+		return empty_table_as_array;
 	}
 
 

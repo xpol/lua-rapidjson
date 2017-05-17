@@ -149,10 +149,11 @@ struct Key
 class Encoder {
 	bool pretty;
 	bool sort_keys;
+	bool empty_table_as_array;
 	int max_depth;
 	static const int MAX_DEPTH_DEFAULT = 128;
 public:
-	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false), max_depth(MAX_DEPTH_DEFAULT)
+	Encoder(lua_State*L, int opt) : pretty(false), sort_keys(false), empty_table_as_array(false), max_depth(MAX_DEPTH_DEFAULT)
 	{
 		if (lua_isnoneornil(L, opt))
 			return;
@@ -160,6 +161,7 @@ public:
 
 		pretty = luax::optboolfield(L, opt, "pretty", false);
 		sort_keys = luax::optboolfield(L, opt, "sort_keys", false);
+		empty_table_as_array = luax::optboolfield(L, opt, "empty_table_as_array", false);
 		max_depth = luax::optintfield(L, opt, "max_depth", MAX_DEPTH_DEFAULT);
 	}
 
@@ -217,7 +219,7 @@ private:
 			luaL_error(L, "stack overflow");
 
 		lua_pushvalue(L, idx); // [table]
-		if (values::isarray(L, -1))
+		if (values::isarray(L, -1, empty_table_as_array))
 		{
 			encodeArray(L, writer, depth);
 			lua_pop(L, 1); // []
