@@ -69,6 +69,7 @@ A optional table contains follow field:
 
 * `pretty` boolean: Set `true` to make output string to be pretty formated. Default is false.
 * `sort_keys` boolean: Set `true` to make JSON object keys be sorted. Default is `false`.
+* `empty_table_as_array` boolean: Set `true` to make empty table encode as JSON array. Default is `false`.
 
 ### Returns
 

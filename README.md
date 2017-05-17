@@ -36,7 +36,7 @@ Lua Type          | JSON type    | Notes
 `true`            |`true`        |
 `false`           |`false`       |
 string            |string        |
-table             |array         |when meta field `__jsontype` is `'array'` or no `__jsontype` meta filed and table length > 0
+table             |array         |when meta field `__jsontype` is `'array'` or no `__jsontype` meta filed and table length > 0 or table length == 0 and empty_table_as_array option is specified
 table             |object        |when not an array, all non string keys and its values are ignored.
 number            |number        |
 
