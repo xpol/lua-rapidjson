@@ -131,8 +131,8 @@ describe('rapidjson.encode()', function()
   end)
 
   it('should support empty_table_as_array options', function()
-    assert.are.equal('{"a": []}', rapidjson.encode({a={}}, {empty_table_as_array=true}))
-    assert.are.equal('{"a": {}}', rapidjson.encode({a={}}))
+    assert.are.equal('{"a":[]}', rapidjson.encode({a={}}, {empty_table_as_array=true}))
+    assert.are.equal('{"a":{}}', rapidjson.encode({a={}}))
   end)
   it('should support sort_keys and pretty options', function()
     assert.are.equal(
