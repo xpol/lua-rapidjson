@@ -126,6 +126,9 @@ namespace values {
 			return true;
 		}
 		bool StartObject() {
+			if (!lua_checkstack(L, 2)) // make sure there's room on the stack
+				return false;
+
 			lua_createtable(L, 0, 0);							// [..., object]
 
 			// mark as object.
@@ -147,6 +150,9 @@ namespace values {
 			return true;
 		}
 		bool StartArray() {
+			if (!lua_checkstack(L, 2)) // make sure there's room on the stack
+				return false;
+
 			lua_createtable(L, 0, 0);
 
 			// mark as array.
