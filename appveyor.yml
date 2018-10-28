@@ -29,7 +29,7 @@ build_script:
 
 before_test:
   - luarocks install busted
-  - luarocks install dromozoa-utf8
+  - luarocks install luautf8
 
 test_script:
   - busted

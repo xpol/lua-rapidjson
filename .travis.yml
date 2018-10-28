@@ -15,7 +15,7 @@ env:
   matrix:
     - LUA=5.1.5
     - LUA=5.2.4
-    - LUA=5.3.3
+    - LUA=5.3.5
     - LUA=luajit-2.0.5
     - LUA=luajit-2.1.0-beta3
 
@@ -33,7 +33,7 @@ before_install:
   - luaenv global $LUA
   - luaenv luarocks $LUAROCKS
   - luarocks install luafilesystem
-  - luarocks install dromozoa-utf8
+  - luarocks install luautf8
   - luarocks install busted
   - luaenv rehash
 

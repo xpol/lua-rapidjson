@@ -1,5 +1,5 @@
 --luacheck: ignore describe it
-local utf8 = require "dromozoa.utf8.pure" -- luarocks install utf8
+local utf8 = require "luautf8" -- luarocks install utf8
 describe('rapidjson.load()', function()
   local rapidjson = require('rapidjson')
   describe('report error', function()

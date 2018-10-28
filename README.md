@@ -44,7 +44,7 @@ number            |number        |
 
 Clone or download source code, in the project root folder:
 
-    luarocks install dromozoa-utf8
+    luarocks install luautf8
     luarocks install busted
     luarocks make
     busted
