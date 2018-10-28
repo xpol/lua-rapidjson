@@ -16,8 +16,8 @@ env:
     - LUA=5.1.5
     - LUA=5.2.4
     - LUA=5.3.3
-    - LUA=luajit-2.0.4
-    - LUA=luajit-2.1-dev
+    - LUA=luajit-2.0.5
+    - LUA=luajit-2.1.0-beta3
 
 branches:
   only:
