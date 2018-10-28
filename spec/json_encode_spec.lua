@@ -162,5 +162,12 @@ describe('rapidjson.encode()', function()
         ["ko"] = "나는 유리를 먹을 수 있어요. 그래도 아프지 않아요"
       }, {sort_keys=true})
     )
+	end)
+	
+	it('should not convert integer to double #22', function()
+    assert.are.same(
+      '{"id":7}',
+      rapidjson.encode( {id=7} )
+    )
   end)
 end)
