@@ -24,16 +24,17 @@ RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(padded)
 RAPIDJSON_DIAG_OFF(switch-enum)
 RAPIDJSON_DIAG_OFF(implicit-fallthrough)
+#elif defined(_MSC_VER)
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
 #endif
 
 #ifdef __GNUC__
 RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(effc++)
+#if __GNUC__ >= 7
+RAPIDJSON_DIAG_OFF(implicit-fallthrough)
 #endif
-
-#ifdef _MSC_VER
-RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
 #endif
 
 #ifndef RAPIDJSON_REGEX_VERBOSE
@@ -606,7 +607,7 @@ public:
     {
         RAPIDJSON_ASSERT(regex_.IsValid());
         if (!allocator_)
-            ownAllocator_ = allocator_ = RAPIDJSON_NEW(Allocator());
+            ownAllocator_ = allocator_ = RAPIDJSON_NEW(Allocator)();
         stateSet_ = static_cast<unsigned*>(allocator_->Malloc(GetStateSetSize()));
         state0_.template Reserve<SizeType>(regex_.stateCount_);
         state1_.template Reserve<SizeType>(regex_.stateCount_);
@@ -688,8 +689,8 @@ private:
             bool matched = AddState(l, s.out);
             return AddState(l, s.out1) || matched;
         }
-        else if (!(stateSet_[index >> 5] & (1 << (index & 31)))) {
-            stateSet_[index >> 5] |= (1 << (index & 31));
+        else if (!(stateSet_[index >> 5] & (1u << (index & 31)))) {
+            stateSet_[index >> 5] |= (1u << (index & 31));
             *l.template PushUnsafe<SizeType>() = index;
         }
         return s.out == kRegexInvalidState; // by using PushUnsafe() above, we can ensure s is not validated due to reallocation.
@@ -720,11 +721,11 @@ typedef GenericRegexSearch<Regex> RegexSearch;
 } // namespace internal
 RAPIDJSON_NAMESPACE_END
 
-#ifdef __clang__
+#ifdef __GNUC__
 RAPIDJSON_DIAG_POP
 #endif
 
-#ifdef _MSC_VER
+#if defined(__clang__) || defined(_MSC_VER)
 RAPIDJSON_DIAG_POP
 #endif
 
