@@ -16,7 +16,7 @@ environment:
     CPU_ARCH: x64
 
 install:
-  - appveyor DownloadFile https://dl.bintray.com/xpol/luavm/LuaVM-0.5.0-vs2015-%CPU_ARCH%.exe -FileName LuaVM-setup.exe
+  - appveyor DownloadFile https://dl.bintray.com/xpol/luavm/LuaVM-0.5.4-vs2017-%CPU_ARCH%.exe -FileName LuaVM-setup.exe
   - LuaVM-setup.exe /verysilent
   - set PATH=%LocalAppData%\LuaVM;%PATH%
 
