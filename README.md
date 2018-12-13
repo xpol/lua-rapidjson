@@ -69,6 +69,14 @@ See [API reference](API.md).
 
 ## Changelog
 
+### 0.5.2
+
+* Check lua stack when decoding objects and arrays to ensure there is room (Thanks Matthew Johnson).
+
+### 0.5.1
+
+* Remove all c++11 feature requirements except move constructor.
+
 ### 0.5.0
 
 * Added Document SchemaDocument SchemaValidator to support JSON pointer and schema.
