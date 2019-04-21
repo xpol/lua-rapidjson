@@ -28,6 +28,14 @@ rapidjson.load()
 rapidjson.dump()
 ```
 
+### Usage without luarocks
+
+1. Use `cmake -H. -Bbuild -G<generator-name>` go generate project
+2. `cmake --build build --config Release` to build the rapidjosn.so or rapidjosn.dll library.
+3. Then link that library to you project or copy to desired place.
+
+> Tips: use `cmake --help` to see a list of generator-name available.
+
 ## Value Type Mappings
 
 Lua Type          | JSON type    | Notes
