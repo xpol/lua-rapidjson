@@ -31,6 +31,7 @@
 #include "values.hpp"
 #include "luax.hpp"
 #include "file.hpp"
+#include "StringStream.hpp"
 
 using namespace rapidjson;
 
@@ -108,10 +109,17 @@ int decode(lua_State* L, Stream* s)
 
 static int json_decode(lua_State* L)
 {
-	size_t len = 0;
-	const char* contents = luaL_checklstring(L, 1, &len);
-	StringStream s(contents);
-	return decode(L, &s);
+    size_t len = 0;
+    const char*  contents = nullptr;
+    if (lua_type(L, 1) == LUA_TSTRING) {
+        contents = luaL_checklstring(L, 1, &len);
+    }
+    else {
+        contents = reinterpret_cast<const char*>(lua_touserdata(L, 1));
+        len = luaL_checkinteger(L, 2);
+    }
+    rapidjson::extend::StringStream s(contents, len);
+    return decode(L, &s);
 }
 
 
