@@ -4,16 +4,17 @@
 * [encode](#encode)
 * [load](#load)
 * [dump](#dump)
+* [null](#null)
 * [object](#object)
 * [array](#array)
 * [_NAME](#_name)
 * [_VERSION](#_version)
 * [Document](#document)
-    * [parse](#parse)
-    * [get](#get)
+    * [parse](#documentparse)
+    * [get](#documentget)
 * [SchemaDocument](#schemadocument)
 * [SchemaValidator](#schemavalidator)
-    * [validate](#validate)
+    * [validate](#schemavalidatorvalidate)
 
 ## decode
 
@@ -31,7 +32,7 @@ Return nil plus an error message as a second result when passed string is not a 
 
 [Back to TOC]($summary)
 
-## encode()
+## encode
 
 *syntax:* `str, err = rapidjson.encode(value [, option])`
 
@@ -89,7 +90,7 @@ rapidjson.encode({a=true, b=false}) --> '{"a":true,"b":false]'
 
 [Back to TOC]($summary)
 
-## load()
+## load
 
 *syntax:* `value, err = rapidjson.load(filename)`
 
@@ -104,7 +105,7 @@ Returns nil plus an error message as a second result when passed file is not val
 
 [Back to TOC]($summary)
 
-## dump()
+## dump
 
 *syntax:* `ok, err = rapidjson.dump(value, filename [, option])`
 
@@ -145,7 +146,7 @@ rapidjson.encode({rapidjson.null}) --> '[null]'
 
 [Back to TOC]($summary)
 
-## object()
+## object
 
 *syntax:* `obj = rapidjson.object([t])`
 
@@ -160,7 +161,7 @@ When passed an valid table:
 
 If a table is passed in, return this table, otherwise a new table will be created.
 
-## array()
+## array
 
 Same as `rapidjson.object()` except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as JSON array.
 
@@ -182,7 +183,7 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 Creates a rapidjson Document object. Optionally create from a Lua table or string of JSON document.
 
-## document:parse()
+### document:parse()
 
 *syntax:* `ok, message = document:parse(s)`
 
@@ -201,7 +202,7 @@ if not ok then
 end
 ```
 
-## document:get()
+### document:get()
 
 *syntax:* `value = document:get(pointer[, default])`
 
@@ -214,7 +215,7 @@ Get document member by [JSON Pointer](http://rapidjson.org/md_doc_pointer.html).
 It document have elements specified by pointer, the element value is returned as a Lua value.
 Otherwise, `default` value is returned; if `default` is not specified, `nil` is returned.
 
-## document:set()
+### document:set()
 
 *syntax:* `document:set(pointer, value)`
 
@@ -274,7 +275,7 @@ local d = rapidjson.Document('.....')
 local ok, message = validator:validate(d)
 ```
 
-## SchemaValidator:validate()
+### SchemaValidator:validate()
 
 *syntax:* `ok, message = validator:validate(d)`
 
