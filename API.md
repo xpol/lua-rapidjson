@@ -1,3 +1,5 @@
+# Lua RapidJSON API Reference
+
 ## Summary
 
 * [decode](#decode)
