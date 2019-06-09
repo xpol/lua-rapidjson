@@ -12,6 +12,7 @@
 * [Document](#document)
     * [parse](#documentparse)
     * [get](#documentget)
+    * [set](#documentset)
 * [SchemaDocument](#schemadocument)
 * [SchemaValidator](#schemavalidator)
     * [validate](#schemavalidatorvalidate)
@@ -177,7 +178,7 @@ A string that is `"rapidjson"`.
 
 The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
-## Document()
+## Document
 
 *syntax:* `doc = rapidjson.Document([t|s])`
 
@@ -188,7 +189,7 @@ Creates a rapidjson Document object. Optionally create from a Lua table or strin
 
 [Back to TOC]($summary)
 
-### document:parse()
+### document:parse
 
 *syntax:* `ok, err = document:parse(s)`
 
@@ -209,7 +210,7 @@ end
 
 [Back to TOC]($summary)
 
-### document:get()
+### document:get
 
 *syntax:* `value = document:get(pointer[, default])`
 
@@ -224,7 +225,7 @@ Otherwise, `default` value is returned; if `default` is not specified, `nil` is 
 
 [Back to TOC]($summary)
 
-### document:set()
+### document:set
 
 *syntax:* `document:set(pointer, value)`
 
@@ -240,61 +241,61 @@ doc:set('/a', {'apple', 'air'})
 
 [Back to TOC]($summary)
 
-## SchemaDocument()
+## SchemaDocument
 
-*syntax:* `sd = rapidjson.SchemaDocument(doc|t|s)`
+*syntax:* `schema_doc = rapidjson.SchemaDocument(doc|tab_schema|str_json_schema)`
 
 * **doc**: The the JSON schema stored in rapidjson.Document object.
 
-* **t**: The Lua table representation of a JSON schema.
+* **tab_schema**: The Lua table representation of a JSON schema.
 
-* **s**: The string contains a JSON schema.
+* **str_json_schema**: The string contains a JSON schema.
 
 Creates a SchemaDocument from Document or a Lua table or a string contains a JSON schema.
 
 Returns the new SchemaDocument object.
 
 ```lua
-local d = rapidjson.Document('{"type": ["string", "number"]}')
-local sd = rapidjson.SchemaDocument(d)
+local doc = rapidjson.Document('{"type": ["string", "number"]}')
+local schema_doc = rapidjson.SchemaDocument(doc)
 ```
 
 ```lua
-local sd = rapidjson.SchemaDocument({type= {"string", "number"}})
+local schema_doc = rapidjson.SchemaDocument({type= {"string", "number"}})
 ```
 
 ```lua
-local sd = rapidjson.SchemaDocument('{"type": ["string", "number"]}')
+local schema_doc = rapidjson.SchemaDocument('{"type": ["string", "number"]}')
 ```
 
 [Back to TOC]($summary)
 
-## SchemaValidator()
+## SchemaValidator
 
-*syntax:* `validator = apidjson.SchemaValidator(sd)`
+*syntax:* `validator = apidjson.SchemaValidator(schema_doc)`
 
-* **sd**: The SchemaDocument to create the validator. SchemaDocument can be shared by schema validators.
+* **schema_doc**: The SchemaDocument to create the validator. SchemaDocument can be shared by schema validators.
 
 Creates a SchemaValidator from a SchemaDocument.
 
 Returns the new created validator object.
 
 ```lua
-local sd = rapidjson.SchemaDocument('{"type": ["string", "number"]}')
-local validator = rapidjson.SchemaValidator(sd)
+local schema_doc = rapidjson.SchemaDocument('{"type": ["string", "number"]}')
+local validator = rapidjson.SchemaValidator(schema_doc)
 
-local d = rapidjson.Document('.....')
+local doc = rapidjson.Document('.....')
 
-local ok, message = validator:validate(d)
+local ok, message = validator:validate(doc)
 ```
 
 [Back to TOC]($summary)
 
-### SchemaValidator:validate()
+### SchemaValidator:validate
 
-*syntax:* `ok, err = validator:validate(d)`
+*syntax:* `ok, err = validator:validate(doc)`
 
-* **d**: The document to be validated against the schema stored inside the validator.
+* **doc**: The document to be validated against the schema stored inside the validator.
 
 Validates a JSON document.
 
