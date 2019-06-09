@@ -10,6 +10,11 @@ based on the very fast [RapidJSON][] C++ library.
 See project [homepage][] for more informations,
 bug report and feature request.
 
+## Dependencies
+
+* `cmake` >= `VERSION 3.1.0`
+* `lua-devel`
+
 ## Usage
 
     luarocks install rapidjson
