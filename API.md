@@ -161,10 +161,13 @@ When passed an valid table:
 
 If a table is passed in, return this table, otherwise a new table will be created.
 
+[Back to TOC]($summary)
+
 ## array
 
 Same as `rapidjson.object()` except the metatable field `__jsontype` is set as `'array'`. And the `encode` and `dump` function will encode it as JSON array.
 
+[Back to TOC]($summary)
 
 ## \_NAME
 
@@ -183,9 +186,11 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 Creates a rapidjson Document object. Optionally create from a Lua table or string of JSON document.
 
+[Back to TOC]($summary)
+
 ### document:parse()
 
-*syntax:* `ok, message = document:parse(s)`
+*syntax:* `ok, err = document:parse(s)`
 
 * **s**: A string contains a JSON document.
 
@@ -202,6 +207,8 @@ if not ok then
 end
 ```
 
+[Back to TOC]($summary)
+
 ### document:get()
 
 *syntax:* `value = document:get(pointer[, default])`
@@ -214,6 +221,8 @@ Get document member by [JSON Pointer](http://rapidjson.org/md_doc_pointer.html).
 
 It document have elements specified by pointer, the element value is returned as a Lua value.
 Otherwise, `default` value is returned; if `default` is not specified, `nil` is returned.
+
+[Back to TOC]($summary)
 
 ### document:set()
 
@@ -228,6 +237,8 @@ Set document member by [JSON Pointer](http://rapidjson.org/md_doc_pointer.html) 
 local doc = rapidjson.Document()
 doc:set('/a', {'apple', 'air'})
 ```
+
+[Back to TOC]($summary)
 
 ## SchemaDocument()
 
@@ -256,6 +267,8 @@ local sd = rapidjson.SchemaDocument({type= {"string", "number"}})
 local sd = rapidjson.SchemaDocument('{"type": ["string", "number"]}')
 ```
 
+[Back to TOC]($summary)
+
 ## SchemaValidator()
 
 *syntax:* `validator = apidjson.SchemaValidator(sd)`
@@ -275,12 +288,16 @@ local d = rapidjson.Document('.....')
 local ok, message = validator:validate(d)
 ```
 
+[Back to TOC]($summary)
+
 ### SchemaValidator:validate()
 
-*syntax:* `ok, message = validator:validate(d)`
+*syntax:* `ok, err = validator:validate(d)`
 
 * **d**: The document to be validated against the schema stored inside the validator.
 
 Validates a JSON document.
 
 Returns `true` if the document is valid. Otherwise returns `false` and a extra error message.
+
+[Back to TOC]($summary)
