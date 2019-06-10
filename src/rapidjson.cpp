@@ -109,17 +109,22 @@ int decode(lua_State* L, Stream* s)
 
 static int json_decode(lua_State* L)
 {
-    size_t len = 0;
-    const char*  contents = nullptr;
-    if (lua_type(L, 1) == LUA_TSTRING) {
-        contents = luaL_checklstring(L, 1, &len);
-    }
-    else {
-        contents = reinterpret_cast<const char*>(lua_touserdata(L, 1));
-        len = luaL_checkinteger(L, 2);
-    }
-    rapidjson::extend::StringStream s(contents, len);
-    return decode(L, &s);
+	size_t len = 0;
+	const char*  contents = nullptr;
+	switch(lua_type(L, 1)) {
+	case LUA_TSTRING:
+		contents = luaL_checklstring(L, 1, &len);
+		break;
+	case LUA_TLIGHTUSERDATA:
+		contents = reinterpret_cast<const char*>(lua_touserdata(L, 1));
+		len = luaL_checkinteger(L, 2);
+		break;
+	default:
+		return luaL_typerror(L, 1, "required string or lightuserdata (points to a memory of a string)");
+	}
+
+	rapidjson::extend::StringStream s(contents, len);
+	return decode(L, &s);
 }
 
 
