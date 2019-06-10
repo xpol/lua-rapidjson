@@ -182,10 +182,10 @@ The current loaded rapidjson version. `"scm"` when not build with luarocks.
 
 ## Document
 
-*syntax:* `doc = rapidjson.Document([t|s])`
+*syntax:* `doc = rapidjson.Document([tab_lua|str_json])`
 
-* **t**: Optional table to be create a rapidjson Document from.
-* **s**: Optional a string contains a JSON document, then when document created the string is parsed into the document.
+* **tab_lua**: Optional table to be create a rapidjson Document from.
+* **str_json**: Optional a string contains a JSON document, then when document created the string is parsed into the document.
 
 Creates a rapidjson Document object. Optionally create from a Lua table or string of JSON document.
 
@@ -193,9 +193,9 @@ Creates a rapidjson Document object. Optionally create from a Lua table or strin
 
 ### document:parse
 
-*syntax:* `ok, err = document:parse(s)`
+*syntax:* `ok, err = document:parse(str_json)`
 
-* **s**: A string contains a JSON document.
+* **str_json**: A string contains a JSON document.
 
 Parses JSON document contained in string s.
 
@@ -204,9 +204,9 @@ Returns `true` on success. Otherwise `false` and an additional error message is 
 ```lua
 local rapidjson = require('rapidjson')
 local doc = rapidjson.Document()
-local ok, message = doc:parse('{"a":["appke", "air"]}')
+local ok, err = doc:parse('{"a":["appke", "air"]}')
 if not ok then
-  print(message)
+  print(err)
 end
 ```
 
@@ -288,7 +288,7 @@ local validator = rapidjson.SchemaValidator(schema_doc)
 
 local doc = rapidjson.Document('.....')
 
-local ok, message = validator:validate(doc)
+local ok, err = validator:validate(doc)
 ```
 
 [Back to TOC]($summary)
