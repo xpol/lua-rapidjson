@@ -12,8 +12,12 @@ bug report and feature request.
 
 ## Dependencies
 
-* `cmake` >= `VERSION 3.1.0`
-* `lua-devel`
+* lua development environment
+    * `lua-devel` (linux) 
+    * or [luavm](https://github.com/xpol/luavm)(windows)
+    * or `brew install lua luarocks` 
+    * or any equivalent on your system
+* `cmake` >= `3.1.0`
 
 ## Usage
 
