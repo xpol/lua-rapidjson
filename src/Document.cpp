@@ -104,7 +104,7 @@ static int Document_get(lua_State* L) {
 		}
 	}
 	else {
-		values::push(L, *v);
+        values::pushValue(L, *v);
 	}
 	return 1;
 }

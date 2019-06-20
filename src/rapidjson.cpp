@@ -88,25 +88,6 @@ static int json_array(lua_State* L)
 	return makeTableType(L, 1, "json.array", "array");
 }
 
-
-template<typename Stream>
-int decode(lua_State* L, Stream* s)
-{
-	int top = lua_gettop(L);
-	values::ToLuaHandler handler(L);
-	Reader reader;
-	ParseResult r = reader.Parse(*s, handler);
-
-	if (!r) {
-		lua_settop(L, top);
-		lua_pushnil(L);
-		lua_pushfstring(L, "%s (%d)", GetParseError_En(r.Code()), r.Offset());
-		return 2;
-	}
-
-	return 1;
-}
-
 static int json_decode(lua_State* L)
 {
 	size_t len = 0;
@@ -120,11 +101,11 @@ static int json_decode(lua_State* L)
 		len = luaL_checkinteger(L, 2);
 		break;
 	default:
-		return luaL_typerror(L, 1, "required string or lightuserdata (points to a memory of a string)");
+		return luaL_argerror(L, 1, "required string or lightuserdata (points to a memory of a string)");
 	}
 
 	rapidjson::extend::StringStream s(contents, len);
-	return decode(L, &s);
+	return values::pushDecoded(L, s);
 }
 
 
@@ -140,7 +121,7 @@ static int json_load(lua_State* L)
 	FileReadStream fs(fp, buffer, sizeof(buffer));
 	AutoUTFInputStream<unsigned, FileReadStream> eis(fs);
 
-	int n = decode(L, &eis);
+	int n = values::pushDecoded(L, eis);
 
 	fclose(fp);
 	return n;
