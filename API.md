@@ -8,6 +8,7 @@ Decode JSON to Lua table.
 
 ```Lua
 value = rapidjson.decode(jsonstring)
+value = rapidjson.decode(lightuserdata, length)
 ```
 
 ### Arguments
@@ -15,6 +16,14 @@ value = rapidjson.decode(jsonstring)
 **jsonstring**
 
 A JSON value string to be decoded.
+
+**lightuserdata**
+
+The C buffer start address.
+
+**length**
+
+The C buffer length.
 
 ### Returns
 

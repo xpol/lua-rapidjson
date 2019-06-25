@@ -86,6 +86,11 @@ See [API reference](API.md).
 
 ## Changelog
 
+### 0.6.0
+
+* Add support for decode C buffer + length.
+* Export C++ API `pushDecoded`.
+
 ### 0.5.2
 
 * Check lua stack when decoding objects and arrays to ensure there is room (Thanks Matthew Johnson).
