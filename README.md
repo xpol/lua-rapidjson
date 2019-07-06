@@ -39,8 +39,14 @@ rapidjson.dump()
 
 ### Usage without luarocks
 
-1. Use `cmake -H. -Bbuild -G<generator-name>` go generate project
-2. `cmake --build build --config Release` to build the rapidjosn.so or rapidjosn.dll library.
+1. Use `cmake -H. -Bbuild -G<generator-name>` go generate project.
+
+    *If you use a non standard lua install location, add `-DLUA_DIR=path/to/lua/installtion`, where `path/to/lua/installtion` is the directory contains `include` and `lib` for you lua installtion. eg.*
+    
+        cmake -H. -Bbuild -G<generator-name> -DLUA_DIR=/usr/local/openresty/luajit
+
+2. `cmake --build build --config Release` to build the `rapidjosn.so` or `rapidjosn.dll` library.
+
 3. Then link that library to you project or copy to desired place.
 
 > Tips: use `cmake --help` to see a list of generator-name available.
@@ -85,6 +91,10 @@ See [API reference](API.md).
 4. `luarocks upload rapidjson-*.*.*-1.rockspec`
 
 ## Changelog
+
+### 0.6.1
+
+* Try support cmake 2.8 with GCC (but still requires c++ compiler support c++11 or at least c++0x).
 
 ### 0.6.0
 

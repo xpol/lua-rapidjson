@@ -1,5 +1,5 @@
 package = "rapidjson"
-version = "0.6.0-1"
+version = "0.6.1-1"
 local v = version:gsub("%-%d", "")
 source = {
   url = "git://github.com/xpol/lua-rapidjson",
