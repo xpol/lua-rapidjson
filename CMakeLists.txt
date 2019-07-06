@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
 
 project(lua-rapidjson)
 
@@ -43,12 +43,12 @@ else(UNIX)
 endif(UNIX)
 
 if(NOT LUA_INCLUDE_DIR OR (WIN32 AND NOT LUA_LIBRARIES))
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-  find_package(Lua REQUIRED)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+    find_package(Lua REQUIRED)
 endif()
 
 if (NOT RAPIDJSON_INCLUDE_DIRS)
-  set(RAPIDJSON_INCLUDE_DIRS rapidjson/include)
+    set(RAPIDJSON_INCLUDE_DIRS rapidjson/include)
 endif()
 
 include_directories(${LUA_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
@@ -65,7 +65,19 @@ set(SOURCES
 )
 
 add_library(lua-rapidjson MODULE ${SOURCES})
-target_compile_features(lua-rapidjson PRIVATE cxx_rvalue_references)
+if(${CMAKE_VERSION} VERSION_LESS "3.1.0")
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        execute_process(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
+        if (GCC_VERSION VERSION_LESS 4.7)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+        else()
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        endif()
+    endif()
+else()
+    target_compile_features(lua-rapidjson PRIVATE cxx_rvalue_references)
+endif()
+
 source_group(src FILES ${SOURCES})
 
 if (WIN32)
