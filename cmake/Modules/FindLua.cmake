@@ -65,13 +65,13 @@ find_path(LUA_INCLUDE_DIR lua.h
     include/luajit-2.1 include/luajit-2.0
     include/lua include
   PATHS
-  ${LUAENV_ROOT}
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /sw # Fink
-  /opt/local # DarwinPorts
-  /opt/csw # Blastwave
-  /opt
+    ${LUAENV_ROOT}
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /sw # Fink
+    /opt/local # DarwinPorts
+    /opt/csw # Blastwave
+    /opt
 )
 
 find_library(LUA_LIBRARY
@@ -80,13 +80,13 @@ find_library(LUA_LIBRARY
     ENV LUA_DIR
   PATH_SUFFIXES lib
   PATHS
-  ${LUAENV_ROOT}
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /sw
-  /opt/local
-  /opt/csw
-  /opt
+    ${LUAENV_ROOT}
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /sw
+    /opt/local
+    /opt/csw
+    /opt
 )
 
 if (LUA_LIBRARY)
