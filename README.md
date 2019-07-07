@@ -41,9 +41,9 @@ rapidjson.dump()
 
 1. Use `cmake -H. -Bbuild -G<generator-name>` go generate project.
 
-    *If you use a non standard lua install location, add `-DLUA_DIR=path/to/lua/installtion`, where `path/to/lua/installtion` is the directory contains `include` and `lib` for you lua installtion. eg.*
-    
-        cmake -H. -Bbuild -G<generator-name> -DLUA_DIR=/usr/local/openresty/luajit
+    *If you use a non standard lua install location, add environment variable `LUA_DIR` to the directory contains `include` and `lib` for you lua installtion. eg.*
+
+        LUA_DIR=/usr/local/openresty/luajit cmake -H. -Bbuild -G<generator-name>
 
 2. `cmake --build build --config Release` to build the `rapidjosn.so` or `rapidjosn.dll` library.
 
