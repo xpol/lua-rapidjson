@@ -17,7 +17,7 @@ bug report and feature request.
     * or [luavm](https://github.com/xpol/luavm)(windows)
     * or `brew install lua luarocks` 
     * or any equivalent on your system
-* `cmake` >= `3.1.0`
+* `cmake` >= `3.1.0`, cmake 2.8 may work but not well tested.
 
 ## Usage
 
