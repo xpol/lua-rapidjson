@@ -79,9 +79,9 @@ static void pushValidator_error(lua_State* L, SchemaValidator* validator) {
 	luaL_addstring(&b, "invalid \"");
 
 	luaL_addstring(&b, validator->GetInvalidSchemaKeyword());
-	luaL_addstring(&b, "\" in docuement at pointer \"");
+	luaL_addstring(&b, "\" in document at pointer \"");
 
-	// docuement pointer
+	// document pointer
 	StringBuffer sb;
 	validator->GetInvalidDocumentPointer().StringifyUriFragment(sb);
 	luaL_addlstring(&b, sb.GetString(), sb.GetSize());
