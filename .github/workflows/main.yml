@@ -1,0 +1,31 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        lua_version: [5.1.5, 5.2.4, 5.3.5, luajit-2.0.5, luajit-2.1.0-beta3]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: leafo/gh-actions-lua@v5
+      with:
+        luaVersion: ${{ matrix.lua_version }}
+
+    - uses: leafo/gh-actions-luarocks@v2
+
+    - name: Setup rocks depended
+      run: |
+        luarocks install luafilesystem
+        luarocks install luautf8
+        luarocks install busted
+
+    - name: Build
+      run: luarocks make
+
+    - name: Test
+      run: busted

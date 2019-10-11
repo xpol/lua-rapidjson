@@ -1,7 +1,7 @@
 # RapidJSON bindings for Lua
 
 [![License](http://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
-[![TrivisStatus][]][Trivis] [![AppVeyorStatus][]][AppVeyor]
+[![Badge][]][Actions]
 
 
 A json module for LuaJIT 2.0/2.1 and Lua 5.1/5.2/5.3,
@@ -168,7 +168,5 @@ See [API reference](API.md).
 
 [RapidJSON]: https://github.com/miloyip/rapidjson
 [homepage]: https://github.com/xpol/lua-rapidjson
-[Trivis]: https://travis-ci.org/xpol/lua-rapidjson "Travis page"
-[TrivisStatus]: https://travis-ci.org/xpol/lua-rapidjson.svg
-[AppVeyor]: https://ci.appveyor.com/project/xpol/lua-rapidjson/branch/master "AppVeyor page"
-[AppVeyorStatus]: https://ci.appveyor.com/api/projects/status/oa3s51dkatevg81o/branch/master?svg=true
+[Badge]: https://github.com/xpol/lua-rapidjson/workflows/CI/badge.svg
+[Actions]: https://github.com/xpol/lua-rapidjson/actions?workflow=CI
