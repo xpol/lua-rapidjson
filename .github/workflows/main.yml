@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         lua_version: [5.1.5, 5.2.4, 5.3.5, luajit-2.0.5, luajit-2.1.0-beta3]
 
     runs-on: ${{ matrix.os }}
