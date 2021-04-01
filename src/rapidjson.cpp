@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 #include <lua.hpp>
 
@@ -367,13 +368,13 @@ static int json_dump(lua_State* L)
 
 
 namespace values {
-	static int nullref = LUA_NOREF;
+	static std::map<lua_State*, int> nullref;
 	/**
 	* Returns rapidjson.null.
 	*/
 	int json_null(lua_State* L)
 	{
-		lua_rawgeti(L, LUA_REGISTRYINDEX, nullref);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, nullref[L]);
 		return 1;
 	}
 }
@@ -415,7 +416,7 @@ LUALIB_API int luaopen_rapidjson(lua_State* L)
 	lua_setfield(L, -2, "_VERSION"); // [rapidjson]
 
 	lua_getfield(L, -1, "null"); // [rapidjson, json.null]
-	values::nullref = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
+	values::nullref[L] = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
 
 
 	createSharedMeta(L, "json.object", "object");
