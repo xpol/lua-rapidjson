@@ -78,6 +78,9 @@ To compare speed of rapidjson and other json libraries:
 
     lua performance/run.lua
 
+The result on my Macbook Pro shows:
+ - For decoding, lua-rapidjson is slightly faster than lua-cjson in most cases.
+ - For encoding, lua-rapidjson is always faster than lua-cjson, and much faster when encoding numbers.
 
 ## API
 
