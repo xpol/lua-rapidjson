@@ -29,11 +29,11 @@ namespace values {
 				return TableValue(L, idx, depth + 1, allocator);
 			case LUA_TNIL:
 				return Value();
-			case LUA_TFUNCTION:
-				if (isnull(L, idx))
-					return Value();
-				// otherwise fall thought
-			case LUA_TLIGHTUSERDATA: // fall thought
+			case LUA_TLIGHTUSERDATA:
+                if (isnull(L, idx))
+                    return Value();
+            // otherwise fall thought
+			case LUA_TFUNCTION: // fall thought
 			case LUA_TUSERDATA: // fall thought
 			case LUA_TTHREAD: // fall thought
 			case LUA_TNONE: // fall thought

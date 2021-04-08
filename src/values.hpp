@@ -14,13 +14,13 @@
 namespace values {
 	typedef rapidjson::Document::AllocatorType Allocator;
 
-	int json_null(lua_State* L);
+	int push_null(lua_State* L);
 
 	inline bool isnull(lua_State* L, int idx)
 	{
 		lua_pushvalue(L, idx); // [value]
 
-		json_null(L); // [value, json.null]
+		push_null(L);
 		bool is = lua_rawequal(L, -1, -2) != 0;
 		lua_pop(L, 2); // []
 
@@ -73,7 +73,7 @@ namespace values {
 		explicit ToLuaHandler(lua_State* aL) : L(aL) { stack_.reserve(32); }
 
 		bool Null() {
-			json_null(L);
+			push_null(L);
 			context_.submit(L);
 			return true;
 		}

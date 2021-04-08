@@ -92,6 +92,10 @@ See [API reference](API.md).
 
 ## Changelog
 
+### 0.7.0
+
+* Change the `rapidjson.null` type to lightuserdata and fixes the issue when it accessed by different Lua States.
+
 ### 0.6.1
 
 * Try support cmake 2.8 with GCC (but still requires c++ compiler support c++11 or at least c++0x).

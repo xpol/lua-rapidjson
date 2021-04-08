@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <vector>
 #include <algorithm>
-#include <map>
 
 #include <lua.hpp>
 
@@ -189,18 +188,18 @@ private:
 		case LUA_TNIL:
 			writer->Null();
 			return;
-		case LUA_TFUNCTION:
+		case LUA_TLIGHTUSERDATA:
 			if (values::isnull(L, idx)) {
 				writer->Null();
 				return;
 			}
 			// otherwise fall thought
-		case LUA_TLIGHTUSERDATA: // fall thought
+		case LUA_TFUNCTION: // fall thought
 		case LUA_TUSERDATA: // fall thought
 		case LUA_TTHREAD: // fall thought
 		case LUA_TNONE: // fall thought
 		default:
-			luaL_error(L, "value type : %s", lua_typename(L, t));
+			luaL_error(L, "unsupported value type : %s", lua_typename(L, t));
 		}
 	}
 
@@ -368,13 +367,13 @@ static int json_dump(lua_State* L)
 
 
 namespace values {
-	static std::map<lua_State*, int> nullref;
+	static intptr_t null = 0;
 	/**
-	* Returns rapidjson.null.
+	* Push a value equals rapidjson.null on to the stack.
 	*/
-	int json_null(lua_State* L)
+	int push_null(lua_State* L)
 	{
-		lua_rawgeti(L, LUA_REGISTRYINDEX, nullref[L]);
+        lua_pushlightuserdata(L, &values::null);
 		return 1;
 	}
 }
@@ -388,8 +387,7 @@ static const luaL_Reg methods[] = {
 	{ "load", json_load },
 	{ "dump", json_dump },
 
-	// special tags and functions
-	{ "null", values::json_null },
+	// special functions
 	{ "object", json_object },
 	{ "array", json_array },
 
@@ -415,9 +413,8 @@ LUALIB_API int luaopen_rapidjson(lua_State* L)
 	lua_pushliteral(L, LUA_RAPIDJSON_VERSION); // [rapidjson, version]
 	lua_setfield(L, -2, "_VERSION"); // [rapidjson]
 
-	lua_getfield(L, -1, "null"); // [rapidjson, json.null]
-	values::nullref[L] = luaL_ref(L, LUA_REGISTRYINDEX); // [rapidjson]
-
+    values::push_null(L); // [rapidjson, json.null]
+    lua_setfield(L, -2, "null"); // [rapidjson]
 
 	createSharedMeta(L, "json.object", "object");
 	createSharedMeta(L, "json.array", "array");

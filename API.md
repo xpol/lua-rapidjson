@@ -36,17 +36,17 @@ Return nil plus an error message as a second result when passed string is not a 
 
 ### Errors
 
-- When passed value is not (convertable to) string.
+- When passed value is not (convertible to) string.
 
 
 ## rapidjson.encode()
 
-Encode Lua table to stringified JSON.
+Encode Lua table to JSON string.
 
 supports the following types:
 
 * boolean
-* rapidjson.null (it is actually a function)
+* rapidjson.null
 * number
 * string
 * table
@@ -167,7 +167,7 @@ Same as in `rapidjson.encode()`.
 
 **filename**
 
-The file path string where to save stringified rapidjson.
+The file path string where to save encode json string.
 
 
 **option**:
@@ -187,7 +187,7 @@ Return false plus an error message as a second result when:
 
 ### Error
 
-* When passed filename is not (convertable to) string.
+* When passed filename is not (convertible to) string.
 * When passed option is not table, nil or none.
 
 

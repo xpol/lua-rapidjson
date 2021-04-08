@@ -8,12 +8,25 @@ describe('rapidjson.null', function()
   end)
 
   it('should be same as all decoded null', function()
-      assert.are.equal(rapidjson.null, rapidjson.decode('null'))
+    assert.are.equal(rapidjson.null, rapidjson.decode('null'))
 
-      assert.are.same({rapidjson.null}, rapidjson.decode('[null]'))
-      assert.are.equal(rapidjson.null, rapidjson.decode('[null]')[1])
+    assert.are.same({rapidjson.null}, rapidjson.decode('[null]'))
+    assert.are.equal(rapidjson.null, rapidjson.decode('[null]')[1])
 
-      assert.are.same({a=rapidjson.null}, rapidjson.decode('{"a":null}'))
-      assert.are.equal(rapidjson.null, rapidjson.decode('{"a":null}').a)
+    assert.are.same({a=rapidjson.null}, rapidjson.decode('{"a":null}'))
+    assert.are.equal(rapidjson.null, rapidjson.decode('{"a":null}').a)
   end)
+
+  it('should works form different Lua State', function()
+    local example = {rapidjson.null}
+
+    assert.are.equal("[null]", rapidjson.encode(example))
+
+    local co = coroutine.create(function()
+      assert.are.equal("[null]", rapidjson.encode(example))
+    end)
+
+    assert.are.equal(true, coroutine.resume(co))
+  end)
+
 end)
