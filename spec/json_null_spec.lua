@@ -23,10 +23,11 @@ describe('rapidjson.null', function()
     assert.are.equal("[null]", rapidjson.encode(example))
 
     local co = coroutine.create(function()
-      assert.are.equal("[null]", rapidjson.encode(example))
+      return rapidjson.encode(example)
     end)
-
-    assert.are.equal(true, coroutine.resume(co))
+		local ok, json = coroutine.resume(co)
+    assert.are.equal(true, ok)
+    assert.are.equal("[null]", json)
   end)
 
 end)
