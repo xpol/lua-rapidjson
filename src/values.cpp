@@ -68,11 +68,11 @@ namespace values {
 		Value ObjectValue(lua_State* L, int idx, int depth, Allocator& allocator)
 		{
 			Value object(rapidjson::kObjectType);
-			lua_pushvalue(L, idx);		// [table]
-			lua_pushnil(L);						// [table, nil]
-			while (lua_next(L, -2))
+			idx = luax::absindex(L, idx);
+			lua_pushnil(L);						// [nil]
+			while (lua_next(L, idx))
 			{
-				// [table, key, value]
+				// [key, value]
 				if (lua_type(L, -2) == LUA_TSTRING)
 				{
 					object.AddMember(StringValue(L, -2, allocator), toValue(L, -1, depth, allocator), allocator);
@@ -80,10 +80,10 @@ namespace values {
 
 				// pop value, leaving original key
 				lua_pop(L, 1);
-				// [table, key]
+				// [key]
 			}
-			// [table]
-			lua_pop(L, 1); // []
+			// []
+
 			return object;
 		}
 

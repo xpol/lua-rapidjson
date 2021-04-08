@@ -21,6 +21,17 @@ namespace luax {
 #endif
 	}
 
+	inline int absindex(lua_State *L, int idx) {
+#if LUA_VERSION_NUM >= 502
+        return lua_absindex(L, idx);
+#else
+        if (i < 0 && i > LUA_REGISTRYINDEX)
+            idx += lua_gettop(L) + 1;
+        return idx;
+#endif
+
+    }
+
 	inline bool isinteger(lua_State* L, int idx, int64_t* out = NULL)
 	{
 #if LUA_VERSION_NUM >= 503
