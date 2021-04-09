@@ -25,7 +25,7 @@ namespace luax {
 #if LUA_VERSION_NUM >= 502
         return lua_absindex(L, idx);
 #else
-        if (i < 0 && i > LUA_REGISTRYINDEX)
+        if (idx < 0 && idx > LUA_REGISTRYINDEX)
             idx += lua_gettop(L) + 1;
         return idx;
 #endif
