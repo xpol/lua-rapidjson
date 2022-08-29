@@ -7,7 +7,7 @@
 A json module for LuaJIT 2.0/2.1 and Lua 5.1/5.2/5.3,
 based on the very fast [RapidJSON][] C++ library.
 
-See project [homepage][] for more informations,
+See project [homepage][] for more information,
 bug report and feature request.
 
 ## Dependencies
@@ -41,7 +41,7 @@ rapidjson.dump()
 
 1. Use `cmake -H. -Bbuild -G<generator-name>` go generate project.
 
-    *If you use a non standard lua install location, add environment variable `LUA_DIR` to the directory contains `include` and `lib` for you lua installtion. eg.*
+    *If you use a non standard lua install location, add environment variable `LUA_DIR` to the directory contains `include` and `lib` for you lua installation. eg.*
 
         LUA_DIR=/usr/local/openresty/luajit cmake -H. -Bbuild -G<generator-name>
 
