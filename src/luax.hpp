@@ -35,13 +35,13 @@ namespace luax {
 	inline bool isinteger(lua_State* L, int idx, int64_t* out = NULL)
 	{
 #if LUA_VERSION_NUM >= 503
-		if (lua_isinteger(L, idx)) // but it maybe not detect all integers.
+		if (lua_isinteger(L, idx))
 		{
 			if (out)
 				*out = lua_tointeger(L, idx);
 			return true;
 		}
-#endif
+#else
 		double intpart;
 		if (std::modf(lua_tonumber(L, idx), &intpart) == 0.0)
 		{
@@ -53,6 +53,7 @@ namespace luax {
 				return true;
 			}
 		}
+#endif
 		return false;
 	}
 
