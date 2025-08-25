@@ -85,7 +85,8 @@ endif()
 source_group(src FILES ${SOURCES})
 
 if (WIN32)
-    target_link_libraries(lua-rapidjson ${LUA_LIBRARIES})
+    string(REPLACE "\\" "/" LUA_LIBRARIES_FIXED ${LUA_LIBRARIES})
+    target_link_libraries(lua-rapidjson ${LUA_LIBRARIES_FIXED})
 endif()
 
 if (LINK_FLAGS)
